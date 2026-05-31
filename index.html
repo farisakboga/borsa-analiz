@@ -2168,7 +2168,7 @@
                 ]);
 
                 // /analyze başarısız olduysa devam edemeyiz (grafik verisi yok)
-                if (analyzeSettled.status === 'rejected' || !analyzeSettled.value.ok) {
+                if (analyzeSettled.status === 'rejected') {
                     alert("Ana veri çekilemedi. Lütfen tekrar deneyin.");
                     return;
                 }
@@ -2178,9 +2178,11 @@
 
                 // /tvdata isteğe bağlı — başarısız olursa sessizce atla
                 tvRawData = null;
-                if (tvSettled.status === 'fulfilled' && tvSettled.value.ok) {
-                    try { tvRawData = await tvSettled.value.json(); } catch(_) { tvRawData = null; }
-                    if (tvRawData && tvRawData.error) tvRawData = null;
+                if (tvSettled.status === 'fulfilled') {
+                    try {
+                        tvRawData = await tvSettled.value.json();
+                        if (tvRawData && tvRawData.error) tvRawData = null;
+                    } catch(_) { tvRawData = null; }
                 }
 
                 let cariItems = [...rawData.cari];
