@@ -1,0 +1,3019 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <title>BorsaMobil</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #000; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Üst Linkler */
+        .top-links { display: flex; gap: 6px; overflow-x: auto; padding: 6px 10px; background: #111; border-bottom: 1px solid #333; flex-shrink: 0; scrollbar-width: none; }
+        .top-links::-webkit-scrollbar { display: none; }
+        .top-links a { color: #ccc; text-decoration: none; font-size: 11px; border: 1px solid #444; padding: 3px 10px; border-radius: 12px; white-space: nowrap; background: #222; font-weight: bold;}
+
+        /* ===== MASAÜSTÜ ANA LAYOUT ===== */
+        .desktop-layout { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0; }
+
+        /* Sol Panel: Kontroller */
+        .controls {
+            width: 210px; min-width: 200px; max-width: 220px;
+            background: #111; border-right: 1px solid #333;
+            display: flex; flex-direction: column; gap: 5px;
+            padding: 8px 6px; overflow-y: auto; overflow-x: hidden; flex-shrink: 0;
+        }
+        .controls::-webkit-scrollbar { width: 4px; }
+        .controls::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        .ctrl-section { display: flex; flex-direction: column; gap: 3px; }
+        .ctrl-label { font-size: 9px; color: #555; font-weight: bold; letter-spacing: 0.8px; text-transform: uppercase; padding: 4px 2px 1px; border-top: 1px solid #222; margin-top: 2px; }
+        .ctrl-label:first-child { border-top: none; margin-top: 0; }
+
+        .row { display: flex; align-items: center; gap: 4px; }
+        button { background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 6px; padding: 7px 4px; font-size: 11px; font-weight: bold; flex: 1; cursor: pointer; transition: background 0.15s; }
+        button:hover { background: #383838; }
+        .btn-nav { flex: none; width: 30px; height: 30px; background: #5D5CDE; border: none; font-size: 15px; display:flex; justify-content:center; align-items:center; padding: 0; }
+        input, select { background: #000; color: #fff; border: 1px solid #444; border-radius: 6px; height: 30px; font-size: 12px; padding: 0 4px; }
+        select { width: 100%; }
+
+        /* Zaman Aralığı Butonları - 5x2 grid */
+        .time-range-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+        .time-range-btn { font-size: 10px !important; padding: 5px 2px !important; }
+
+        /* Sağ Alan: Grafik + Veri */
+        .content-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+        #chartArea { width: 100%; height: 63vh; min-height: 380px; background: #000; position: relative; flex-shrink: 0; }
+        
+        /* Veri Gridleri ve Başlıklar */
+        .section-title { 
+            font-size: 12px; color: #5D5CDE; padding: 5px 8px; background: #151515; 
+            border-bottom: 1px solid #333; font-weight: bold; position: sticky; top:0; z-index: 5;
+            white-space: normal; word-wrap: break-word; line-height: 1.4;
+        }
+        
+        /* 4 sütunlu grid */
+        .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; padding: 3px; background: #0a0a0a; font-size: 11px; }
+        .info-item { display: flex; justify-content: space-between; padding: 3px 6px; border-bottom: 1px solid #1a1a1a; align-items: center; gap: 4px; background: #111; }
+        .info-item span:first-child { color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+        .info-item span:last-child { font-weight: bold; white-space: nowrap; font-size: 11px; }
+        
+        .val-pos { color: #10B981 !important; }
+        .val-neg { color: #EF4444 !important; }
+        
+        .desc-box { padding: 8px 10px; font-size: 11px; color: #ccc; line-height: 1.5; background: #111; font-style: italic; }
+        
+        /* Arama / Tamamlama Kutusu */
+        .input-wrapper { flex: 1; position: relative; height: 30px;}
+        #symbol { width: 100%; height: 100%; text-align: center; font-weight: bold; border-color: #5D5CDE; text-transform: uppercase; padding-left: 22px; position: relative; z-index: 1; font-size: 12px;}
+
+        /* Liste İkonu */
+        #listIconBtn {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            background: none;
+            border: none;
+            color: #5D5CDE;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 2px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 3px;
+            flex: none;
+            pointer-events: auto;
+        }
+        #listIconBtn:active { background: #333; }
+
+        /* Hisse Listesi Dropdown */
+        #stockListDropdown {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border: 1px solid #5D5CDE;
+            border-radius: 8px 8px 0 0;
+            max-height: 380px;
+            overflow-y: auto;
+            display: none;
+            z-index: 60;
+        }
+        #stockListDropdown.open { display: block; }
+        .stock-list-header {
+            padding: 6px 10px;
+            font-size: 10px;
+            color: #5D5CDE;
+            background: #111;
+            border-bottom: 1px solid #333;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+        .stock-list-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #222;
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .stock-list-item:hover, .stock-list-item:active { background: #2a2a3a; }
+        .stock-list-item.current { color: #5D5CDE; }
+        .stock-list-item .item-idx { color: #555; font-size: 10px; margin-right: 8px; min-width: 24px; text-align: right; }
+        #symbolIdx {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #EF4444;
+            font-size: 10px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 2;
+            line-height: 1;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .suggestions { position: absolute; bottom: 100%; left: 0; right: 0; background: #222; border: 1px solid #444; max-height: 200px; overflow-y: auto; display: none; z-index: 50; border-radius: 6px 6px 0 0;}
+        .suggestion-item { padding: 10px; border-bottom: 1px solid #333; color: #fff; font-size: 13px;}
+        
+        .active-range { background: #5D5CDE !important; border-color: #5D5CDE; }
+        .measure-active { background: #c2410c !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .btn-tool { background: #1e1e1e; border-color: #444; font-size: 11px;}
+        .btn-tool:hover { background: #2a2a2a; }
+        
+        #loader { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; color: #5D5CDE; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 8px;}
+
+        /* Yıldız Butonu */
+        #starBtn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+            background: rgba(0,0,0,0.55);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            color: #888;
+            transition: transform 0.15s, color 0.2s;
+            padding: 0;
+        }
+        #starBtn:active { transform: scale(1.35); }
+        #starBtn.starred { color: #FFD700; text-shadow: 0 0 8px rgba(255,215,0,0.6); }
+
+        #redStarBtn {
+            position: absolute;
+            top: 12px;
+            right: 50px;
+            z-index: 10;
+            background: rgba(0,0,0,0.55);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            color: #888;
+            transition: transform 0.15s, color 0.2s, opacity 0.2s;
+            padding: 0;
+        }
+        #redStarBtn:active { transform: scale(1.35); }
+        #redStarBtn.red-starred { color: #EF4444; text-shadow: 0 0 8px rgba(239,68,68,0.6); }
+
+        /* ===== T-VIEW MODAL ===== */
+        #tvModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.97);
+            z-index: 2000;
+            flex-direction: column;
+        }
+        #tvModal.active { display: flex; }
+
+        .tv-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #111;
+            border-bottom: 2px solid #5D5CDE;
+            flex-shrink: 0;
+        }
+        .tv-modal-title {
+            font-weight: bold;
+            color: #5D5CDE;
+            font-size: 13px;
+            flex: 1;
+        }
+        .tv-modal-close {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: none;
+        }
+        .tv-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Modal Bölüm Başlıkları */
+        .tv-section-title {
+            font-size: 11px;
+            color: #5D5CDE;
+            padding: 6px 4px 4px;
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .tv-section {
+            margin-bottom: 8px;
+        }
+        .tv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .tv-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 6px;
+            background: #111;
+            font-size: 11px;
+            border-bottom: 1px solid #1a1a1a;
+            gap: 4px;
+        }
+        .tv-item-key { color: #888; flex-shrink: 0; }
+        .tv-item-val { font-weight: bold; text-align: right; }
+        .tv-pos { color: #10B981; }
+        .tv-neg { color: #EF4444; }
+        .tv-loader {
+            text-align: center;
+            padding: 40px;
+            color: #5D5CDE;
+            font-size: 13px;
+        }
+
+        /* ===== AI ANALİZ MODAL ===== */
+        #aiModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.97);
+            z-index: 2000;
+            flex-direction: column;
+        }
+        #aiModal.active { display: flex; }
+        #newsModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.97);
+            z-index: 2000;
+            flex-direction: column;
+        }
+        #newsModal.active { display: flex; }
+        .news-source-list { margin-top: 16px; border-top: 1px solid #333; padding-top: 10px; }
+        .news-source-item { font-size: 11px; padding: 6px 4px; border-bottom: 1px solid #1a1a1a; display: flex; flex-direction: column; gap: 3px; }
+        .news-source-item a { color: #93c5fd; text-decoration: none; word-break: break-all; line-height: 1.4; }
+        .news-source-item a:hover { color: #60a5fa; text-decoration: underline; }
+        .news-source-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .news-source-date { color: #666; font-size: 10px; }
+        .news-source-badge {
+            font-size: 9px; font-weight: bold; padding: 1px 6px; border-radius: 8px;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .badge-web        { background: #1e3a5f; color: #93c5fd; }
+        .badge-x          { background: #1a1a1a; color: #e5e7eb; border: 1px solid #333; }
+        .badge-tradingview{ background: #0f2a1a; color: #4ade80; }
+        .badge-midas      { background: #2a1a0f; color: #fb923c; }
+        .badge-investing  { background: #1a0f2a; color: #c084fc; }
+        .badge-default    { background: #222; color: #aaa; }
+        .ai-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #111;
+            border-bottom: 2px solid #a78bfa;
+            flex-shrink: 0;
+        }
+        .ai-modal-title {
+            font-weight: bold;
+            color: #a78bfa;
+            font-size: 13px;
+            flex: 1;
+        }
+        .ai-modal-close {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            flex: none;
+        }
+        .ai-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            -webkit-overflow-scrolling: touch;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #e0e0e0;
+        }
+
+        /* ===== AI METİN TİPOGRAFİ ===== */
+        /* Markdown bold: **metin** → <strong> */
+        .ai-row-text strong,
+        .ai-card-header-text strong {
+            color: #fff;
+            font-weight: 700;
+        }
+        /* Inline em/italic */
+        .ai-row-text em {
+            color: #c4b5fd;
+            font-style: normal;
+        }
+        /* Sayısal vurgular */
+        .ai-num-highlight {
+            color: #facc15;
+            font-weight: 700;
+        }
+        /* Alt-başlık (## satırları) */
+        .ai-sub-heading {
+            font-size: 12px;
+            font-weight: 700;
+            color: #a78bfa;
+            border-left: 3px solid #7c3aed;
+            padding-left: 8px;
+            margin: 6px 0 2px;
+            display: block;
+        }
+        /* Pozitif / Negatif renkli satırlar */
+        .ai-row-text.positive { color: #86efac; }
+        .ai-row-text.negative { color: #fca5a5; }
+        .ai-card {
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .ai-card-header {
+            background: #1e1530;
+            border-bottom: 1px solid #3a2a5a;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-card-header-text {
+            color: #c4b5fd;
+            font-size: 13px;
+            font-weight: 700;
+            flex: 1;
+        }
+        .ai-card-body {
+            padding: 4px 12px 8px;
+        }
+        .ai-loader {
+            text-align: center;
+            padding: 50px 20px;
+            color: #a78bfa;
+            font-size: 13px;
+        }
+        .ai-error {
+            text-align: center;
+            padding: 40px 20px;
+            color: #EF4444;
+            font-size: 13px;
+        }
+        .ai-disclaimer {
+            margin-top: 16px;
+            padding: 8px 10px;
+            background: #1a1a1a;
+            border-left: 3px solid #a78bfa;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #888;
+            font-style: italic;
+        }
+        .ai-model-badge {
+            display: inline-block;
+            font-size: 10px;
+            color: #666;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 2px 8px;
+            margin-bottom: 12px;
+        }
+
+        .ai-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #1e1e1e;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .ai-row:last-child { border-bottom: none; }
+        .ai-row-bullet {
+            flex: 0 0 5px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #a78bfa;
+            margin-top: 7px;
+        }
+        .ai-row-text {
+            flex: 1;
+            color: #d0d0d0;
+        }
+        .ai-verdict-al   { color: #10B981; font-weight: bold; }
+        .ai-verdict-sat  { color: #EF4444; font-weight: bold; }
+        .ai-verdict-bekle { color: #F59E0B; font-weight: bold; }
+
+        /* ===== DOLAR MOD BUTONU ===== */
+        #usdModeBtn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 10;
+            background: rgba(0,0,0,0.55);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            color: #666;
+            transition: transform 0.15s, color 0.2s, background 0.2s;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        #usdModeBtn:active { transform: scale(1.2); }
+        #usdModeBtn.usd-active {
+            color: #10B981;
+            background: rgba(16, 185, 129, 0.18);
+            border-color: #10B981;
+            text-shadow: 0 0 8px rgba(16,185,129,0.6);
+        }
+        #usdLoader {
+            position: absolute;
+            top: 50px;
+            left: 8px;
+            z-index: 10;
+            font-size: 10px;
+            color: #10B981;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: none;
+        }
+    
+        /* ===== TAKVİM MODALİ ===== */
+        #calModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.88);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+        }
+        #calModal.open { display: flex; }
+        .cal-box {
+            background: #1a1a1a;
+            border: 1px solid #5D5CDE;
+            border-radius: 14px;
+            padding: 18px 14px 14px;
+            width: 296px;
+            max-width: 94vw;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+        }
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .cal-title {
+            color: #5D5CDE;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .cal-close {
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            color: #fff !important;
+            border-radius: 6px !important;
+            padding: 4px 10px !important;
+            font-size: 12px !important;
+            cursor: pointer !important;
+            flex: none !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 6px;
+        }
+        .cal-nav-btn {
+            background: #2a2a2a !important;
+            border: 1px solid #444 !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 18px !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex: none !important;
+            padding: 0 !important;
+        }
+        .cal-nav-btn:active { background: #3a3a3a !important; }
+        #calMonthLabel {
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            flex: 1;
+        }
+        .cal-dow {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .cal-dow span {
+            font-size: 10px;
+            color: #666;
+            padding: 2px 0;
+        }
+        .cal-dow span.weekend { color: #f87171; }
+        #calGrid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .cal-day {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: #ccc;
+            font-size: 11px;
+            padding: 6px 2px;
+            cursor: pointer;
+            text-align: center;
+            line-height: 1;
+            flex: none !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        .cal-day:active { opacity: 0.7; }
+        .cal-day.weekend { color: #f87171; }
+        .cal-day.selected { background: #5D5CDE !important; color: #fff !important; border-color: #5D5CDE !important; }
+        .cal-day.today { border-color: #5D5CDE !important; }
+        .cal-day.disabled { color: #3a3a3a !important; cursor: default !important; pointer-events: none; }
+        .cal-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .cal-apply {
+            flex: 1;
+            background: #5D5CDE !important;
+            border: none !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            font-size: 13px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            height: auto !important;
+        }
+        .cal-clear {
+            flex: 1;
+            background: #2a2a2a !important;
+            border: 1px solid #444 !important;
+            color: #aaa !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            font-size: 12px !important;
+            cursor: pointer !important;
+            height: auto !important;
+        }
+        .cal-year-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .cal-year-btn {
+            background: #222 !important;
+            border: 1px solid #333 !important;
+            color: #aaa !important;
+            border-radius: 6px !important;
+            padding: 3px 10px !important;
+            font-size: 12px !important;
+            cursor: pointer !important;
+            flex: none !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        #calYearLabel {
+            color: #5D5CDE;
+            font-size: 13px;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+        </style>
+
+    <!-- ===== WORKER URL AYARI (BURAYA YAZIN) ===== -->
+    <script>
+        // Cloudflare Worker URL'nizi buraya yazın.
+        // Netlify site adresinizi buraya yazın (örn: https://borsaanaliz.netlify.app)
+        window.WORKER_URL = 'https://borsaanalizdesktop.netlify.app';
+    </script>
+</head>
+<body>
+    <!-- Üst Linkler -->
+    <div class="top-links" id="links"></div>
+
+    <div class="desktop-layout">
+
+    <!-- Sol Panel: Kontroller -->
+    <div class="controls">
+
+        <!-- Hisse Arama & Navigasyon -->
+        <span class="ctrl-label">Hisse Seç</span>
+        <div class="row">
+            <button class="btn-nav" onclick="move(-1)">‹</button>
+            <div class="input-wrapper">
+                <button id="listIconBtn" onclick="toggleStockListDropdown(event)" title="Listedeki hisseleri göster">☰</button>
+                <input type="text" id="symbol" value="LMKDC" autocomplete="off" onfocus="this.select()">
+                <span id="symbolIdx">0</span>
+                <div class="suggestions" id="suggestions"></div>
+                <div id="stockListDropdown">
+                    <div class="stock-list-header" id="stockListHeader">LİSTEDEKİ HİSSELER</div>
+                </div>
+            </div>
+            <button class="btn-nav" onclick="move(1)">›</button>
+        </div>
+        <select id="listSelect" onchange="changeList()">
+                
+<option value="Tüm Hisseler">Tüm Hisseler (610)</option>
+<option value="BIST 50-30">BIST 50-30 (20)</option>
+<option value="KATILIM 30">KATILIM 30 (30)</option>
+<option value="KATILIM 50">KATILIM 50 (50)</option>
+<option value="KATILIM 100">KATILIM 100 (100)</option>
+<option value="KATILIM SURD">KATILIM SURD (25)</option>
+<option value="KATILIM TEMETTU">KATILIM TEMETTU (34)</option>
+<option value="BIST SURD-25">BIST SURD-25 (25)</option>
+<option value="GERI ALIM">GERI ALIM (43)</option>
+<option value="SABANCI TOP">SABANCI TOP (12)</option>
+<option value="BUY SIRKETLER">BUY SIRKETLER (100)</option>
+<option value="AK DEGER-100">AK DEGER-100 (100)</option>
+<option value="HOLDING-YATIRIM">HOLDING-YATIRIM (57)</option>
+<option value="ILETISIM">ILETISIM (2)</option>
+<option value="ORMAN KAGIT BASIM">ORMAN KAGIT BASIM (17)</option>
+<option value="KIMYA-PET-PLAS">KIMYA-PET-PLAS (47)</option>
+<option value="METAL ANA">METAL ANA (30)</option>
+<option value="METAL ESYA MAKINA">METAL ESYA MAKINA (43)</option>
+<option value="SIGORTA">SIGORTA (6)</option>
+<option value="TAS TOPRAK">TAS TOPRAK (25)</option>
+<option value="TICARET">TICARET (25)</option>
+<option value="TEKSTIL DERI">TEKSTIL DERI (19)</option>
+<option value="TURIZM">TURIZM (14)</option>
+<option value="BIST 30">BIST 30 (30)</option>
+<option value="BIST 50">BIST 50 (50)</option>
+<option value="BIST 100">BIST 100 (100)</option>
+<option value="ULASTIRMA">ULASTIRMA (12)</option>
+<option value="BIST MALI">BIST MALI (150)</option>
+<option value="BIST SINAI">BIST SINAI (241)</option>
+<option value="BIST TEKNOLOJI">BIST TEKNOLOJI (42)</option>
+<option value="MENKUL KIY YO">MENKUL KIY YO (9)</option>
+<option value="BANKA">BANKA (12)</option>
+<option value="BILISIM">BILISIM (38)</option>
+<option value="ELEKTRIK">ELEKTRIK (39)</option>
+<option value="FAKTORING">FAKTORING (9)</option>
+<option value="GIDA ICECEK">GIDA ICECEK (47)</option>
+<option value="GAYRIMENKUL YO">GAYRIMENKUL YO (53)</option>
+<option value="BIST 100-30">BIST 100-30 (70)</option>
+<option value="MADENCILIK">MADENCILIK (7)</option>
+<option value="BIST SURD">BIST SURD (100)</option>
+<option value="ISBANK ISTIRAK">ISBANK ISTIRAK (11)</option>
+<option value="TEMETTU 25">TEMETTU 25 (25)</option>
+<option value="BIST TEMETTU">BIST TEMETTU (90)</option>
+<option value="ARACI KURUMLAR">ARACI KURUMLAR (9)</option>
+<option value="INSAAT">INSAAT (14)</option>
+<option value="KOBI SANAYI">KOBI SANAYI (21)</option>
+<option value="BIST ANA">BIST ANA (275)</option>
+<option value="BIST HALKA ARZ">BIST HALKA ARZ (56)</option>
+<option value="HALKBANK SURD-30">HALKBANK SURD-30 (30)</option>
+<option value="OSMANLI DEGER-25">OSMANLI DEGER-25 (25)</option>
+<option value="TEMETTU 10 YIL">TEMETTU 10 YIL (33)</option>
+<option value="TEMETTU 5 YIL">TEMETTU 5 YIL (61)</option>
+<option value="Aracı Kurumlar">Aracı Kurumlar (10)</option>
+<option value="Bankacılık">Bankacılık (15)</option>
+<option value="Bilgisayar Topt">Bilgisayar Topt (7)</option>
+<option value="Boya">Boya (4)</option>
+<option value="Cam">Cam (2)</option>
+<option value="Yabancı Ortak">Yabancı Ortak (56)</option>
+<option value="Dayanıklı Tüketim">Dayanıklı Tüketim (9)</option>
+<option value="Demir-Çelik Döküm">Demir-Çelik Döküm (8)</option>
+<option value="Demir-Çelik Temel">Demir-Çelik Temel (15)</option>
+<option value="Deri Giyim">Deri Giyim (4)</option>
+<option value="Elektrik-Gaz Dağ">Elektrik-Gaz Dağ (5)</option>
+<option value="Elektrik Kurulum">Elektrik Kurulum (15)</option>
+<option value="Elektrik Üretim">Elektrik Üretim (27)</option>
+<option value="Makine-Teçhizat Üretim">Makine-Teçhizat Üretim (8)</option>
+<option value="Endüstriyel Tekstil">Endüstriyel Tekstil (4)</option>
+<option value="Fin.Kira Faktoring">Fin.Kira Faktoring (11)</option>
+<option value="GYO">GYO (56)</option>
+<option value="Gıda">Gıda (49)</option>
+<option value="Havayolları ve Hizm.">Havayolları ve Hizm. (4)</option>
+<option value="Hayvancılık">Hayvancılık (2)</option>
+<option value="Holdingler">Holdingler (38)</option>
+<option value="Kablo">Kablo (3)</option>
+<option value="Kağıt Ürünleri">Kağıt Ürünleri (15)</option>
+<option value="Kimyasal Ürün">Kimyasal Ürün (18)</option>
+<option value="Kırtasiye">Kırtasiye (2)</option>
+<option value="Madencilik">Madencilik (7)</option>
+<option value="Medya">Medya (7)</option>
+<option value="Meşrubat İçecek">Meşrubat İçecek (9)</option>
+<option value="Mobilya">Mobilya (6)</option>
+<option value="Otomotiv">Otomotiv (8)</option>
+<option value="Otomotiv Lastiği">Otomotiv Lastiği (2)</option>
+<option value="Otomotiv Parçası">Otomotiv Parçası (11)</option>
+<option value="Pazarlama">Pazarlama (2)</option>
+<option value="Perakande - Ticaret">Perakande - Ticaret (14)</option>
+<option value="Petrol">Petrol (6)</option>
+<option value="Savunma">Savunma (4)</option>
+<option value="Sağlık ve İlaç">Sağlık ve İlaç (13)</option>
+<option value="Seramik">Seramik (6)</option>
+<option value="Sigorta">Sigorta (6)</option>
+<option value="Spor">Spor (4)</option>
+<option value="Tarım Kimya">Tarım Kimya (5)</option>
+<option value="Teknoloji">Teknoloji (23)</option>
+<option value="Tekstil Entegre">Tekstil Entegre (27)</option>
+<option value="Turizm">Turizm (11)</option>
+<option value="Ulaştırma-Loj">Ulaştırma-Loj (15)</option>
+<option value="Varlık Yönetim">Varlık Yönetim (3)</option>
+<option value="Yatırım Ortaklıkları">Yatırım Ortaklıkları (17)</option>
+<option value="Çimento">Çimento (16)</option>
+<option value="İletişim">İletişim (3)</option>
+<option value="İletişim Cihaz">İletişim Cihaz (4)</option>
+<option value="İnşaat Malz">İnşaat Malz (22)</option>
+<option value="İnşaat-Taahhüt">İnşaat-Taahhüt (7)</option>
+<option value="BIST Temettü 25">BIST Temettü 25 (25)</option>
+<option value="Küçük Sermaye">Küçük Sermaye (266)</option>
+<option value="Tüm 500'ler">Tüm 500'ler (172)</option>
+<option value="GÖZDE">GÖZDE (31)</option>
+<option value="Elimdekiler">Elimdekiler (7)</option>
+
+            </select>
+
+        <!-- Zaman Aralıkları -->
+        <span class="ctrl-label">Zaman Aralığı</span>
+        <div class="time-range-row">
+            <button onclick="changeTimeRange('1H')" data-range="1H" class="time-range-btn">1H</button>
+            <button onclick="changeTimeRange('1A')" data-range="1A" class="time-range-btn">1A</button>
+            <button onclick="changeTimeRange('3A')" data-range="3A" class="time-range-btn">3A</button>
+            <button onclick="changeTimeRange('6A')" data-range="6A" class="time-range-btn">6A</button>
+            <button onclick="changeTimeRange('1Y')" data-range="1Y" class="time-range-btn">1Y</button>
+            <button onclick="changeTimeRange('3Y')" data-range="3Y" class="time-range-btn">3Y</button>
+            <button onclick="changeTimeRange('5Y')" data-range="5Y" class="time-range-btn active-range">5Y</button>
+            <button onclick="changeTimeRange('10Y')" data-range="10Y" class="time-range-btn">10Y</button>
+            <button onclick="changeTimeRange('15Y')" data-range="15Y" class="time-range-btn">15Y</button>
+            <button onclick="open20YCalendar(event)" data-range="20Y" id="btn20Y" class="time-range-btn" style="display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; padding:4px 2px;">
+                <span id="btn20YLabel">📅</span>
+            </button>
+        </div>
+
+        <!-- Araçlar -->
+        <span class="ctrl-label">Araçlar</span>
+        <div class="row">
+            <button class="btn-tool" id="measureBtn" onclick="toggleMeasure()" style="color:#f97316;">📏 Ölçüm</button>
+            <button class="btn-tool" id="tvBtn" onclick="openTVModal()" style="color:#38bdf8;">📊 T-View</button>
+        </div>
+        <div class="row">
+            <button class="btn-tool" onclick="loadRandomSymbol()" style="color:#10B981;">↻ Rastgele</button>
+            <button class="btn-tool" onclick="openAIModal(event)" style="color:#a78bfa;">🤖 AI Analiz</button>
+        </div>
+        <div class="row">
+            <button class="btn-tool" onclick="openNewsModal(event)" style="color:#facc15;">📰 Haberler</button>
+            <button class="btn-tool" id="deleteListBtn" onclick="deleteCustomList()" style="color:#EF4444; display:none;">🗑️ Listeyi Sil</button>
+        </div>
+
+        <!-- Liste Yönetimi -->
+        <span class="ctrl-label">Liste Yönetimi</span>
+        <div class="row">
+            <button class="btn-tool" onclick="createCustomList()" style="color:#a78bfa;">➕ Liste Ekle</button>
+        </div>
+
+        <!-- Grafik Seçenekleri -->
+        <span class="ctrl-label">Grafik</span>
+        <div class="row" style="gap:8px; padding: 2px 4px;">
+            <label style="display:flex; align-items:center; gap:5px; font-size:11px; color:#888; cursor:pointer; white-space:nowrap;">
+                <input type="checkbox" id="clickPriceMode" style="accent-color:#5D5CDE; cursor:pointer; width:13px; height:13px;">
+                Tarihi Mod
+            </label>
+        </div>
+
+    </div><!-- /controls -->
+
+    <!-- Sağ Alan: Grafik + Veriler -->
+    <div class="content-scroll" id="mainCaptureArea">
+        <div id="chartArea">
+            <div id="loader">LÜTFEN BEKLEYİN...</div>
+            <div id="chart" style="width:100%; height:100%;"></div>
+            <button id="usdModeBtn" onclick="toggleUsdMode()" title="Dolar bazlı grafik">$</button>
+            <span id="usdLoader">⏳</span>
+            <button id="redStarBtn" onclick="toggleWatchlist()" title="Alınacaklara ekle">☆</button>
+            <button id="starBtn" onclick="toggleFavorite()" title="Yıldızlılara ekle">☆</button>
+        </div>
+        
+        <div class="section-title" id="cariTitle" style="display:flex; justify-content:space-between; align-items:center;">
+            <span id="cariTitleText">Cari Değerler</span>
+        </div>
+        <div class="info-grid" id="cari"></div>
+        
+        <div class="section-title" id="descTitle">Şirket Profili</div>
+        <div class="desc-box" id="desc"></div>
+    </div><!-- /content-scroll -->
+
+    </div><!-- /desktop-layout -->
+
+    <!-- ===== T-VIEW MODALi ===== -->
+    <div id="tvModal">
+        <div class="tv-modal-header">
+            <span class="tv-modal-title" id="tvModalTitle">📊 TradingView Analizi</span>
+            <button class="tv-modal-close" onclick="closeTVModal()">✕ Kapat</button>
+        </div>
+        <div class="tv-modal-body" id="tvModalBody">
+            <div class="tv-loader">Yükleniyor...</div>
+        </div>
+    </div>
+
+    <!-- ===== AI ANALİZ MODALi ===== -->
+    <div id="aiModal">
+        <div class="ai-modal-header">
+            <span class="ai-modal-title" id="aiModalTitle">🤖 AI Hisse Analizi</span>
+            <button class="ai-modal-close" onclick="closeAIModal()">✕ Kapat</button>
+        </div>
+        <div class="ai-modal-body" id="aiModalBody">
+            <div class="ai-loader">Analiz yükleniyor...</div>
+        </div>
+    </div>
+
+    <div id="newsModal">
+        <div class="ai-modal-header">
+            <span class="ai-modal-title" id="newsModalTitle">📰 Haber Analizi</span>
+            <button class="ai-modal-close" onclick="closeNewsModal()">✕ Kapat</button>
+        </div>
+        <div class="ai-modal-body" id="newsModalBody">
+            <div class="ai-loader">Haberler yükleniyor...</div>
+        </div>
+    </div>
+
+    <script>
+        
+        // ===== WORKER URL AYARI =====
+        // Netlify site adresinizi buraya yazın (https://xxx.netlify.app)
+        const WORKER_URL = window.WORKER_URL || 'https://borsaanalizdesktop.netlify.app';
+        function apiUrl(path) { return WORKER_URL + '/api' + path; }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+
+        const symbolLists = {"Tüm Hisseler": ["A1CAP", "A1YEN", "ACSEL", "ADEL", "ADESE", "ADGYO", "AEFES", "AFYON", "AGESA", "AGHOL", "AGROT", "AGYO", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKFYE", "AKGRT", "AKHAN", "AKMGY", "AKSA", "AKSEN", "AKSGY", "AKSUE", "AKYHO", "ALARK", "ALBRK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKA", "ALKIM", "ALKLC", "ALTINS1", "ALTNY", "ALVES", "ANELE", "ANGEN", "ANHYT", "ANSGR", "ARASE", "ARCLK", "ARDYZ", "ARENA", "ARFYE", "ARMGD", "ARSAN", "ARTMS", "ARZUM", "ASELS", "ASGYO", "ASTOR", "ASUZU", "ATAGY", "ATAKP", "ATATP", "ATATR", "ATEKS", "ATLAS", "ATSYH", "AVGYO", "AVHOL", "AVOD", "AVPGY", "AVTUR", "AYCES", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BALAT", "BALSU", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BEGYO", "BERA", "BESLR", "BESTE", "BEYAZ", "BFREN", "BIENY", "BIGCH", "BIGEN", "BIGTK", "BIMAS", "BINBN", "BINHO", "BIOEN", "BIZIM", "BJKAS", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORLS", "BORSK", "BOSSA", "BRISA", "BRKO", "BRKSN", "BRKVY", "BRLSM", "BRMEN", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "BUCIM", "BULGS", "BURCE", "BURVA", "BVSAN", "BYDNR", "CANTE", "CASA", "CATES", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CEOEM", "CGCAM", "CIMSA", "CLEBI", "CMBTN", "CMENT", "CONSE", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CVKMD", "CWENE", "DAGI", "DAPGM", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DGATE", "DGGYO", "DGNMO", "DIRIT", "DITAS", "DMLKTG", "DMRGD", "DMSAS", "DNISI", "DOAS", "DOCO", "DOFER", "DOFRB", "DOGUB", "DOHOL", "DOKTA", "DSTKF", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EBEBK", "ECILC", "ECOGR", "ECZYT", "EDATA", "EDIP", "EFOR", "EGEEN", "EGEGY", "EGEPO", "EGGUB", "EGPRO", "EGSER", "EKGYO", "EKIZ", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMNIS", "EMPAE", "ENDAE", "ENERY", "ENJSA", "ENKAI", "ENSRI", "ENTRA", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "ESCAR", "ESCOM", "ESEN", "ETILR", "ETYAT", "EUHOL", "EUKYO", "EUPWR", "EUREN", "EUYO", "EYGYO", "FADE", "FENER", "FLAP", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "FROTO", "FZLGY", "GARAN", "GARFA", "GATEG", "GEDIK", "GEDZA", "GENIL", "GENKM", "GENTS", "GEREL", "GESAN", "GIPTA", "GLBMD", "GLCVY", "GLRMK", "GLRYH", "GLYHO", "GMTAS", "GOKNR", "GOLTS", "GOODY", "GOZDE", "GRNYO", "GRSEL", "GRTHO", "GSDDE", "GSDHO", "GSRAY", "GUBRF", "GUNDG", "GWIND", "GZNMI", "HALKB", "HATEK", "HATSN", "HDFGS", "HEDEF", "HEKTS", "HKTM", "HLGYO", "HOROZ", "HRKET", "HTTBT", "HUBVC", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHAAS", "IHEVA", "IHGZT", "IHLAS", "IHLGM", "IHYAY", "IMASM", "INDES", "INFO", "INGRM", "INTEK", "INTEM", "INVEO", "INVES", "ISATR", "ISBIR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGSY", "ISGYO", "ISKPL", "ISKUR", "ISMEN", "ISSEN", "ISYAT", "IZENR", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KBORU", "KCAER", "KCHOL", "KENT", "KERVN", "KFEIN", "KGYO", "KIMMR", "KLGYO", "KLKIM", "KLMSN", "KLNMA", "KLRHO", "KLSER", "KLSYN", "KLYPV", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONTR", "KONYA", "KOPOL", "KORDS", "KOTON", "KRDMA", "KRDMB", "KRDMD", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KSTUR", "KTLEV", "KTSKR", "KUTPO", "KUVVA", "KUYAS", "KZBGY", "KZGYO", "LIDER", "LIDFA", "LILAK", "LINK", "LKMNH", "LMKDC", "LOGO", "LRSHO", "LUKSK", "LXGYO", "LYDHO", "LYDYE", "MAALT", "MACKO", "MAGEN", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MAVI", "MCARD", "MEDTR", "MEGAP", "MEGMT", "MEKAG", "MEPET", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MGROS", "MHRGY", "MIATK", "MMCAS", "MNDRS", "MNDTR", "MOBTL", "MOGAN", "MOPAS", "MPARK", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "MTRYO", "MZHLD", "NATEN", "NETAS", "NETCD", "NIBAS", "NTGAZ", "NTHOL", "NUGYO", "NUHCM", "OBAMS", "OBASE", "ODAS", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORCAY", "ORGE", "ORMA", "OSMEN", "OSTIM", "OTKAR", "OTTO", "OYAKC", "OYAYO", "OYLUM", "OYYAT", "OZATD", "OZGYO", "OZKGY", "OZRDN", "OZSUB", "OZYSR", "PAGYO", "PAHOL", "PAMEL", "PAPIL", "PARSN", "PASEU", "PATEK", "PCILT", "PEKGY", "PENGD", "PENTA", "PETKM", "PETUN", "PGSUS", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "POLHO", "POLTK", "PRDGS", "PRKAB", "PRKME", "PRZMA", "PSDTC", "PSGYO", "QNBFK", "QNBTR", "QUAGR", "RALYH", "RAYSG", "REEDR", "RGYAS", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "RYGYO", "RYSAS", "SAFKR", "SAHOL", "SAMAT", "SANEL", "SANFM", "SANKO", "SARKY", "SASA", "SAYAS", "SDTTR", "SEGMN", "SEGYO", "SEKFK", "SEKUR", "SELEC", "SELVA", "SERNT", "SEYKM", "SILVR", "SISE", "SKBNK", "SKTAS", "SKYLP", "SKYMD", "SMART", "SMRTG", "SMRVA", "SNGYO", "SNICA", "SNPAM", "SODSN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SUNTK", "SURGY", "SUWEN", "SVGYO", "TABGD", "TARKM", "TATEN", "TATGD", "TAVHL", "TBORG", "TCELL", "TCKRC", "TDGYO", "TEHOL", "TEKTU", "TERA", "TEZOL", "TGSAS", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TMSN", "TNZTP", "TOASO", "TRALT", "TRCAS", "TRENJ", "TRGYO", "TRHOL", "TRILC", "TRMET", "TSGYO", "TSKB", "TSPOR", "TTKOM", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "TUREX", "TURGG", "TURSG", "UCAYM", "UFUK", "ULAS", "ULKER", "ULUFA", "ULUSE", "ULUUN", "UMPAS", "UNLU", "USAK", "VAKBN", "VAKFA", "VAKFN", "VAKKO", "VANGD", "VBTYZ", "VERTU", "VERUS", "VESBE", "VESTL", "VKFYO", "VKGYO", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YBTAS", "YEOTK", "YESIL", "YGGYO", "YIGIT", "YKBNK", "YKSLN", "YONGA", "YUNSA", "YYAPI", "YYLGD", "ZEDUR", "ZERGY", "ZGYO", "ZOREN", "ZRGYO"], "BIST 50-30": ["ALARK", "ARCLK", "BRSAN", "BTCIM", "CANTE", "CCOLA", "CIMSA", "DOAS", "HALKB", "HEKTS", "KONTR", "KUYAS", "MAVI", "MIATK", "OYAKC", "PASEU", "TRMET", "TSKB", "TURSG", "ULKER"], "KATILIM 30": ["ALKLC", "ALTNY", "ASELS", "BIMAS", "BSOKE", "CANTE", "CIMSA", "CVKMD", "CWENE", "DAPGM", "EFOR", "EKGYO", "EREGL", "EUPWR", "GENIL", "GLRMK", "GUBRF", "KRDMD", "KTLEV", "MAVI", "OBAMS", "PASEU", "PETKM", "QUAGR", "RALYH", "TKFEN", "TUKAS", "TUPRS", "TUREX", "YEOTK"], "KATILIM 50": ["ALKLC", "ALTNY", "ASELS", "BERA", "BIMAS", "BINHO", "BMSTL", "BSOKE", "CANTE", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOFRB", "EFOR", "EKGYO", "ENJSA", "EREGL", "EUPWR", "FORMT", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GUBRF", "IHLAS", "IZFAS", "KARSN", "KATMR", "KCAER", "KRDMD", "KTLEV", "KZBGY", "MAGEN", "MAVI", "MPARK", "NETCD", "OBAMS", "PASEU", "PETKM", "QUAGR", "RALYH", "SARKY", "TKFEN", "TUKAS", "TUPRS", "TUREX", "USAK", "YEOTK"], "KATILIM 100": ["AKFYE", "ALBRK", "ALFAS", "ALKLC", "ALTNY", "ALVES", "ARDYZ", "ASELS", "ATATP", "BEGYO", "BERA", "BIENY", "BIMAS", "BINBN", "BINHO", "BMSTL", "BSOKE", "CANTE", "CEMTS", "CEMZY", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DCTTR", "DOFRB", "EFOR", "EGGUB", "EKGYO", "ENJSA", "EREGL", "EUPWR", "FONET", "FORMT", "FZLGY", "GENIL", "GENTS", "GEREL", "GESAN", "GLRMK", "GOKNR", "GRSEL", "GRTHO", "GUBRF", "GUNDG", "HRKET", "IHLAS", "IHLGM", "IMASM", "ISDMR", "IZFAS", "JANTS", "KARSN", "KATMR", "KBORU", "KCAER", "KOPOL", "KRDMD", "KTLEV", "KZBGY", "LMKDC", "LOGO", "MAGEN", "MAVI", "MEGMT", "MERCN", "MEYSU", "MOPAS", "MPARK", "NETCD", "NTGAZ", "OBAMS", "ORGE", "OZATD", "PASEU", "PETKM", "POLHO", "QUAGR", "RALYH", "RGYAS", "SAFKR", "SARKY", "SAYAS", "SDTTR", "SELEC", "SNGYO", "SRVGY", "SUNTK", "SURGY", "TARKM", "TEZOL", "TKFEN", "TKNSA", "TUKAS", "TUPRS", "TUREX", "USAK", "YEOTK", "YIGIT", "ZERGY"], "KATILIM SURD": ["ALBRK", "ASELS", "BIMAS", "BRISA", "BSOKE", "CIMSA", "ENJSA", "EREGL", "GRSEL", "ISDMR", "KARSN", "KLSER", "KMPUR", "LOGO", "MAGEN", "MAVI", "MPARK", "PETKM", "POLHO", "QUAGR", "SUNTK", "TKFEN", "TKNSA", "TUPRS", "YUNSA"], "KATILIM TEMETTU": ["ARASE", "ARDYZ", "ASELS", "ATATP", "AYEN", "BASGZ", "BIMAS", "CIMSA", "EBEBK", "EGGUB", "EGPRO", "ELITE", "EMPAE", "EREGL", "GENIL", "GOLTS", "GRSEL", "ISDMR", "JANTS", "KCAER", "KTLEV", "LKMNH", "LOGO", "MAVI", "MCARD", "NTGAZ", "PAGYO", "PLTUR", "SARKY", "SUNTK", "SUWEN", "TUPRS", "VAKKO", "YUNSA"], "BIST SURD-25": ["AEFES", "AKBNK", "ARCLK", "ASELS", "BIMAS", "CIMSA", "DOAS", "ENKAI", "GARAN", "ISCTR", "KCHOL", "MAVI", "MGROS", "OYAKC", "PETKM", "PGSUS", "SAHOL", "SISE", "TAVHL", "TCELL", "THYAO", "TSKB", "TUPRS", "ULKER", "YKBNK"], "GERI ALIM": ["AHGAZ", "ATAKP", "ATATP", "AVGYO", "BLUME", "BOBET", "BORLS", "BOSSA", "DAGI", "EFOR", "ENDAE", "ENERY", "GENIL", "GLYHO", "GOKNR", "GSDHO", "GWIND", "HRKET", "HUNER", "INVES", "KAYSE", "KLSYN", "KLYPV", "KOCMT", "KONKA", "LIDER", "LKMNH", "LOGO", "MAVI", "MEPET", "MERCN", "MERKO", "MIATK", "NTHOL", "ORGE", "PRKME", "SUWEN", "TCELL", "TEZOL", "THYAO", "VAKBN", "VAKFA", "VERTU"], "SABANCI TOP": ["AFYON", "AGESA", "AKBNK", "AKCNS", "AKGRT", "BRISA", "CIMSA", "CRFSA", "ENJSA", "KORDS", "SAHOL", "TKNSA"], "BUY SIRKETLER": ["AAGYO", "ADESE", "AHSGY", "AKHAN", "ALVES", "ARDYZ", "ARFYE", "ARMGD", "ASELS", "ASGYO", "ASUZU", "ATATP", "AYDEM", "BESTE", "BIGEN", "BMSTL", "BRSAN", "BRYAT", "CIMSA", "CLEBI", "CWENE", "DERHL", "DGATE", "DOFER", "DOFRB", "EBEBK", "ECOGR", "EDATA", "EFOR", "EGEGY", "EGGUB", "EKGYO", "ENKAI", "ESCOM", "ETILR", "EUPWR", "FADE", "FONET", "FORTE", "GEDZA", "GMTAS", "GRTHO", "GUBRF", "HDFGS", "HEDEF", "HLGYO", "HRKET", "HTTBT", "IHLGM", "ISGSY", "KARSN", "KATMR", "KIMMR", "KRGYO", "KRONT", "LINK", "MACKO", "MARBL", "MEGMT", "MERIT", "METRO", "MHRGY", "MOBTL", "MSGYO", "NETAS", "NETCD", "ONCSM", "OTKAR", "OZGYO", "PAGYO", "PAHOL", "PASEU", "PATEK", "PCILT", "PEKGY", "PENTA", "PGSUS", "PLTUR", "PRDGS", "PRZMA", "RGYAS", "SEGMN", "SRVGY", "TAVHL", "TCELL", "TCKRC", "TEHOL", "THYAO", "TNZTP", "TOASO", "TRALT", "TRENJ", "TRILC", "TRMET", "TTKOM", "TUREX", "YEOTK", "YGGYO", "YUNSA", "YYLGD"], "AK DEGER-100": ["A1CAP", "A1YEN", "AEFES", "AHSGY", "AKBNK", "AKFGY", "AKFYE", "AKGRT", "AKSA", "AKSGY", "ALBRK", "ANSGR", "ARASE", "ARTMS", "ASGYO", "AVHOL", "AVPGY", "AYGAZ", "BASGZ", "BAGFS", "BESLR", "BINHO", "BNTAS", "BULGS", "CATES", "DESA", "DOAS", "DUNYH", "DZGYO", "EDIP", "EKGYO", "ESCOM", "EUREN", "FORTE", "GARAN", "GARFA", "GEDIK", "GLCVY", "GLRYH", "GLYHO", "GOKNR", "GOLTS", "GSDDE", "GSDHO", "HALKB", "HDFGS", "HLGYO", "IHGZT", "IHLGM", "INDES", "INFO", "ISCTR", "ISFIN", "ISGSY", "KATMR", "KIMMR", "KRSTL", "KUTPO", "KZBGY", "LIDFA", "LILAK", "MERIT", "MHRGY", "MNDRS", "NTGAZ", "NTHOL", "ODAS", "ORGE", "OYYAT", "PAGYO", "PAHOL", "PCILT", "PETUN", "PGSUS", "PLTUR", "PSGYO", "RGYAS", "RTALB", "SISE", "SRVGY", "SURGY", "TCELL", "THYAO", "TMSN", "TNZTP", "TRCAS", "TRGYO", "TSKB", "TTKOM", "TUREX", "TURSG", "ULKER", "ULUFA", "VAKBN", "VAKFA", "VAKFN", "VKGYO", "YGGYO", "YKBNK", "YUNSA", "YYLGD"], "HOLDING-YATIRIM": ["AGHOL", "AKYHO", "ALARK", "ARSAN", "AVHOL", "BERA", "BINHO", "BRYAT", "BULGS", "COSMO", "DENGE", "DERHL", "DOHOL", "DUNYH", "ECILC", "ECZYT", "GLRYH", "GLYHO", "GOZDE", "GRTHO", "GSDHO", "HDFGS", "HEDEF", "HUBVC", "ICUGS", "IEYHO", "IHLAS", "IHYAY", "INVEO", "INVES", "ISGSY", "KCHOL", "KLRHO", "LRSHO", "LYDHO", "MARKA", "METRO", "MZHLD", "NTHOL", "OSTIM", "OTTO", "PAHOL", "POLHO", "PRDGS", "RALYH", "SAHOL", "SISE", "TAVHL", "TEHOL", "TKFEN", "TRCAS", "TRHOL", "UFUK", "UNLU", "VERTU", "VERUS", "YESIL"], "ILETISIM": ["TCELL", "TTKOM"], "ORMAN KAGIT BASIM": ["ALKA", "BAKAB", "BARMA", "DGNMO", "DURDO", "GENTS", "GIPTA", "KAPLM", "KARTN", "KLSYN", "KONKA", "LILAK", "MNDTR", "PRZMA", "SAMAT", "TEZOL", "VKING"], "KIMYA-PET-PLAS": ["ACSEL", "AKSA", "ALKIM", "ANGEN", "AYGAZ", "BAGFS", "BAHKM", "BAYRK", "BRISA", "BRKSN", "DEVA", "DNISI", "DYOBY", "EGGUB", "EGPRO", "EPLAS", "EUREN", "FRMPL", "GEDZA", "GENKM", "GOODY", "GUBRF", "HEKTS", "ISKPL", "IZFAS", "KBORU", "KMPUR", "KOPOL", "KRPLS", "MARMR", "MEDTR", "MERCN", "MRSHL", "ONCSM", "OZRDN", "PETKM", "POLTK", "RNPOL", "RTALB", "SANFM", "SASA", "SEKUR", "SEYKM", "TARKM", "TMPOL", "TRILC", "TUPRS"], "METAL ANA": ["BLUME", "BMSCH", "BMSTL", "BRSAN", "BURCE", "BURVA", "CELHA", "CEMAS", "CEMTS", "CUSAN", "DMSAS", "DOFER", "DOKTA", "ERBOS", "ERCB", "EREGL", "ISDMR", "IZMDC", "KCAER", "KOCMT", "KRDMA", "KRDMB", "KRDMD", "MEGMT", "OZYSR", "PNLSN", "SARKY", "TCKRC", "TUCLK", "YKSLN"], "METAL ESYA MAKINA": ["ALCAR", "ALVES", "ARCLK", "ASTOR", "ASUZU", "BFREN", "BNTAS", "BVSAN", "DITAS", "EGEEN", "EKOS", "EMKEL", "EUPWR", "FMIZP", "FORMT", "FROTO", "GEREL", "HATSN", "HKTM", "IHEVA", "IMASM", "JANTS", "KARSN", "KATMR", "KLMSN", "MAKIM", "MAKTK", "MEKAG", "OTKAR", "OZATD", "PARSN", "PRKAB", "SAFKR", "SAYAS", "SILVR", "SNICA", "TMSN", "TOASO", "TTRAK", "ULUSE", "VESBE", "VESTL", "YIGIT"], "SIGORTA": ["AGESA", "AKGRT", "ANHYT", "ANSGR", "RAYSG", "TURSG"], "TAS TOPRAK": ["AFYON", "AKCNS", "BIENY", "BOBET", "BSOKE", "BTCIM", "BUCIM", "CGCAM", "CIMSA", "CMBTN", "DOGUB", "EGSER", "GOLTS", "KLKIM", "KLSER", "KONYA", "KUTPO", "LMKDC", "MARBL", "NIBAS", "NUHCM", "OYAKC", "QUAGR", "SERNT", "USAK"], "TICARET": ["ARZUM", "BIMAS", "BIZIM", "CRFSA", "DCTTR", "DOAS", "EBEBK", "GENIL", "GMTAS", "INTEM", "KIMMR", "KOTON", "KUVVA", "MAVI", "MEPET", "MGROS", "MOPAS", "PSDTC", "SANKO", "SELEC", "SOKM", "SUWEN", "TGSAS", "TKNSA", "VAKKO"], "TEKSTIL DERI": ["ARTMS", "BLCYT", "BOSSA", "DAGI", "DERIM", "DESA", "ENSRI", "HATEK", "ISSEN", "KORDS", "KRTEK", "LUKSK", "MNDRS", "RODRG", "RUBNS", "SKTAS", "SUNTK", "YATAS", "YUNSA"], "TURIZM": ["ATATR", "AVTUR", "AYCES", "BIGCH", "BYDNR", "DOCO", "ETILR", "MAALT", "MARTI", "MERIT", "PKENT", "TABGD", "TEKTU", "ULAS"], "BIST 30": ["AEFES", "AKBNK", "ASELS", "ASTOR", "BIMAS", "DSTKF", "EKGYO", "ENKAI", "EREGL", "FROTO", "GARAN", "GUBRF", "ISCTR", "KCHOL", "KRDMD", "MGROS", "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TOASO", "TRALT", "TTKOM", "TUPRS", "VAKBN", "YKBNK"], "BIST 50": ["AEFES", "AKBNK", "ALARK", "ARCLK", "ASELS", "ASTOR", "BIMAS", "BRSAN", "BTCIM", "CANTE", "CCOLA", "CIMSA", "DOAS", "DSTKF", "EKGYO", "ENKAI", "EREGL", "FROTO", "GARAN", "GUBRF", "HALKB", "HEKTS", "ISCTR", "KCHOL", "KONTR", "KRDMD", "KUYAS", "MAVI", "MGROS", "MIATK", "OYAKC", "PASEU", "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TOASO", "TRALT", "TRMET", "TSKB", "TTKOM", "TUPRS", "TURSG", "ULKER", "VAKBN", "YKBNK"], "BIST 100": ["AEFES", "AGHOL", "AKBNK", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "ASELS", "ASTOR", "BALSU", "BIMAS", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "DSTKF", "ECILC", "EFOR", "EKGYO", "ENERY", "ENJSA", "ENKAI", "EREGL", "EUPWR", "EUREN", "FENER", "FROTO", "GARAN", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GSRAY", "GUBRF", "HALKB", "HEKTS", "ISCTR", "ISMEN", "IZENR", "KCHOL", "KLRHO", "KONTR", "KRDMD", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MGROS", "MIATK", "MPARK", "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PETKM", "PGSUS", "PSGYO", "QUAGR", "RALYH", "REEDR", "SAHOL", "SARKY", "SASA", "SISE", "SKBNK", "SOKM", "TABGD", "TAVHL", "TCELL", "THYAO", "TKFEN", "TOASO", "TRALT", "TRENJ", "TRMET", "TSKB", "TTKOM", "TUKAS", "TUPRS", "TUREX", "TURSG", "ULKER", "VAKBN", "VESTL", "YKBNK", "ZOREN"], "ULASTIRMA": ["BEYAZ", "CLEBI", "GRSEL", "GSDDE", "HOROZ", "HRKET", "PASEU", "PGSUS", "RYSAS", "THYAO", "TLMAN", "TUREX"], "BIST MALI": ["A1CAP", "AAGYO", "ADGYO", "AGESA", "AGHOL", "AGYO", "AHSGY", "AKBNK", "AKFGY", "AKGRT", "AKMGY", "AKSGY", "AKYHO", "ALARK", "ALBRK", "ALGYO", "ANHYT", "ANSGR", "ARSAN", "ASGYO", "ATAGY", "AVGYO", "AVHOL", "AVPGY", "BASGZ", "BEGYO", "BERA", "BINHO", "BRKVY", "BRYAT", "BULGS", "COSMO", "CRDFA", "DENGE", "DERHL", "DGGYO", "DOHOL", "DSTKF", "DUNYH", "DZGYO", "ECILC", "ECZYT", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "GARAN", "GARFA", "GEDIK", "GLBMD", "GLCVY", "GLRYH", "GLYHO", "GOZDE", "GRTHO", "GSDHO", "HALKB", "HDFGS", "HEDEF", "HLGYO", "HUBVC", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHLAS", "IHYAY", "INFO", "INVEO", "INVES", "ISATR", "ISBTR", "ISCTR", "ISFIN", "ISGSY", "ISGYO", "ISMEN", "KCHOL", "KGYO", "KLGYO", "KLRHO", "KRGYO", "KTLEV", "KZBGY", "KZGYO", "LIDFA", "LRSHO", "LXGYO", "LYDHO", "MARKA", "METRO", "MHRGY", "MRGYO", "MSGYO", "MZHLD", "NTHOL", "NUGYO", "OSMEN", "OSTIM", "OTTO", "OYYAT", "OZGYO", "OZKGY", "PAGYO", "PAHOL", "PEKGY", "POLHO", "PRDGS", "PSGYO", "RALYH", "RAYSG", "RYGYO", "SAHOL", "SEGYO", "SEKFK", "SISE", "SKBNK", "SKYMD", "SMRVA", "SNGYO", "SRVGY", "SURGY", "SVGYO", "TAVHL", "TDGYO", "TEHOL", "TERA", "TKFEN", "TRCAS", "TRGYO", "TRHOL", "TSGYO", "TSKB", "TURSG", "UFUK", "ULUFA", "UNLU", "VAKBN", "VAKFA", "VAKFN", "VERTU", "VERUS", "VKGYO", "VRGYO", "YESIL", "YGGYO", "YKBNK", "ZERGY", "ZGYO", "ZRGYO"], "BIST SINAI": ["ACSEL", "ADEL", "AEFES", "AFYON", "AGROT", "AKCNS", "AKHAN", "AKSA", "ALCAR", "ALKA", "ALKIM", "ALKLC", "ALVES", "ANGEN", "ARCLK", "ARMGD", "ARTMS", "ASTOR", "ASUZU", "ATAKP", "AVOD", "AYGAZ", "BAGFS", "BAHKM", "BAKAB", "BALSU", "BANVT", "BARMA", "BAYRK", "BESLR", "BFREN", "BIENY", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORSK", "BOSSA", "BRISA", "BRKSN", "BRSAN", "BSOKE", "BTCIM", "BUCIM", "BURCE", "BURVA", "BVSAN", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CGCAM", "CIMSA", "CMBTN", "CUSAN", "CVKMD", "DAGI", "DARDL", "DERIM", "DESA", "DEVA", "DGNMO", "DITAS", "DMRGD", "DMSAS", "DNISI", "DOFER", "DOGUB", "DOKTA", "DURDO", "DURKN", "DYOBY", "EFOR", "EGEEN", "EGGUB", "EGPRO", "EGSER", "EKOS", "EKSUN", "ELITE", "EMKEL", "ENSRI", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "EUPWR", "EUREN", "FADE", "FMIZP", "FORMT", "FRIGO", "FRMPL", "FROTO", "GEDZA", "GENKM", "GENTS", "GEREL", "GIPTA", "GOKNR", "GOLTS", "GOODY", "GUBRF", "GUNDG", "HATEK", "HATSN", "HEKTS", "HKTM", "IHEVA", "IMASM", "ISDMR", "ISKPL", "ISSEN", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KARTN", "KBORU", "KCAER", "KLKIM", "KLMSN", "KLSER", "KLSYN", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONYA", "KOPOL", "KORDS", "KRDMA", "KRDMB", "KRDMD", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KTSKR", "KUTPO", "LILAK", "LMKDC", "LUKSK", "MAKIM", "MAKTK", "MARBL", "MARMR", "MEDTR", "MEGMT", "MEKAG", "MERCN", "MERKO", "MEYSU", "MNDRS", "MNDTR", "MRSHL", "NIBAS", "NUHCM", "OBAMS", "OFSYM", "ONCSM", "ORCAY", "OTKAR", "OYAKC", "OYLUM", "OZATD", "OZRDN", "OZSUB", "OZYSR", "PARSN", "PENGD", "PETKM", "PETUN", "PINSU", "PNLSN", "PNSUT", "POLTK", "PRKAB", "PRKME", "PRZMA", "QUAGR", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "SAFKR", "SAMAT", "SANFM", "SARKY", "SASA", "SAYAS", "SEGMN", "SEKUR", "SELVA", "SERNT", "SEYKM", "SILVR", "SKTAS", "SNICA", "SOKE", "SUNTK", "TARKM", "TATGD", "TBORG", "TCKRC", "TEZOL", "TMPOL", "TMSN", "TOASO", "TRALT", "TRENJ", "TRILC", "TRMET", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "ULKER", "ULUSE", "ULUUN", "USAK", "VANGD", "VESBE", "VESTL", "VKING", "VSNMD", "YAPRK", "YATAS", "YIGIT", "YKSLN", "YUNSA", "YYLGD"], "BIST TEKNOLOJI": ["ALCTL", "ALTNY", "ARDYZ", "ARENA", "ASELS", "ATATP", "AZTEK", "BINBN", "DESPC", "DGATE", "DOFRB", "EDATA", "EMPAE", "ESCOM", "FONET", "FORTE", "HTTBT", "INDES", "INGRM", "KAREL", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MCARD", "MIATK", "MOBTL", "MTRKS", "NETAS", "NETCD", "OBASE", "ODINE", "ONRYT", "PAPIL", "PATEK", "PENTA", "PKART", "REEDR", "SDTTR", "SMART", "VBTYZ"], "MENKUL KIY YO": ["ATLAS", "ETYAT", "EUKYO", "EUYO", "GRNYO", "ISYAT", "MTRYO", "OYAYO", "VKFYO"], "BANKA": ["AKBNK", "ALBRK", "GARAN", "HALKB", "ICBCT", "ISATR", "ISBTR", "ISCTR", "SKBNK", "TSKB", "VAKBN", "YKBNK"], "BILISIM": ["ALCTL", "ARDYZ", "ARENA", "ATATP", "AZTEK", "BINBN", "DESPC", "DGATE", "DOFRB", "EDATA", "EMPAE", "ESCOM", "FONET", "FORTE", "HTTBT", "INDES", "INGRM", "KAREL", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MCARD", "MIATK", "MOBTL", "MTRKS", "NETAS", "NETCD", "OBASE", "ODINE", "PAPIL", "PATEK", "PENTA", "PKART", "REEDR", "SMART", "VBTYZ"], "ELEKTRIK": ["A1YEN", "AHGAZ", "AKENR", "AKFYE", "AKSEN", "AKSUE", "ALFAS", "ARASE", "ARFYE", "AYDEM", "AYEN", "BESTE", "BIGEN", "BIOEN", "CANTE", "CATES", "CONSE", "CWENE", "ECOGR", "ENDAE", "ENERY", "ENJSA", "ENTRA", "ESEN", "GWIND", "HUNER", "IZENR", "KLYPV", "LYDYE", "MAGEN", "MOGAN", "NATEN", "NTGAZ", "ODAS", "PAMEL", "SMRTG", "TATEN", "ZEDUR", "ZOREN"], "FAKTORING": ["CRDFA", "DSTKF", "GARFA", "ISFIN", "LIDFA", "SEKFK", "ULUFA", "VAKFA", "VAKFN"], "GIDA ICECEK": ["AEFES", "AKHAN", "ALKLC", "ARMGD", "ATAKP", "AVOD", "BALSU", "BANVT", "BESLR", "BORSK", "CCOLA", "CEMZY", "DARDL", "DMRGD", "DURKN", "EFOR", "EKSUN", "ELITE", "ERSU", "FADE", "FRIGO", "GOKNR", "GUNDG", "KAYSE", "KRSTL", "KRVGD", "KTSKR", "MERKO", "MEYSU", "OBAMS", "OFSYM", "ORCAY", "OYLUM", "PENGD", "PETUN", "PINSU", "PNSUT", "GRID", "SEGMN", "SELVA", "SOKE", "TATGD", "TBORG", "TUKAS", "ULKER", "ULUUN", "VANGD", "YYLGD"], "GAYRIMENKUL YO": ["AAGYO", "ADGYO", "AGYO", "AHSGY", "AKFGY", "AKMGY", "AKSGY", "ALGYO", "ASGYO", "ATAGY", "AVGYO", "AVPGY", "BASGZ", "BEGYO", "DGGYO", "DZGYO", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "HLGYO", "IDGYO", "ISGYO", "KGYO", "KLGYO", "KRGYO", "KZBGY", "KZGYO", "LXGYO", "MHRGY", "MRGYO", "MSGYO", "NUGYO", "OZGYO", "OZKGY", "PAGYO", "PEKGY", "PSGYO", "RYGYO", "SEGYO", "SNGYO", "SRVGY", "SURGY", "SVGYO", "TDGYO", "TRGYO", "TSGYO", "VKGYO", "VRGYO", "YGGYO", "ZERGY", "ZGYO", "ZRGYO"], "BIST 100-30": ["AGHOL", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "BALSU", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "ECILC", "EFOR", "ENERY", "ENJSA", "EUPWR", "EUREN", "FENER", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GSRAY", "HALKB", "HEKTS", "ISMEN", "IZENR", "KLRHO", "KONTR", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MIATK", "MPARK", "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PSGYO", "QUAGR", "RALYH", "REEDR", "SARKY", "SKBNK", "SOKM", "TABGD", "TKFEN", "TRENJ", "TRMET", "TSKB", "TUKAS", "TUREX", "TURSG", "ULKER", "VESTL", "ZOREN"], "MADENCILIK": ["CVKMD", "PRKME", "RUZYE", "TRALT", "TRENJ", "TRMET", "VSNMD"], "BIST SURD": ["AEFES", "AGESA", "AGHOL", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKGRT", "AKSA", "AKSEN", "AKSGY", "ALARK", "ALBRK", "ANHYT", "ANSGR", "ARCLK", "ASELS", "ASUZU", "AYDEM", "AYGAZ", "BESLR", "BIMAS", "BIOEN", "BIZIM", "BRISA", "BSOKE", "BTCIM", "CCOLA", "CIMSA", "CONSE", "DGNMO", "DOAS", "DOCO", "DOHOL", "ENJSA", "ENKAI", "EREGL", "ESEN", "FROTO", "GARAN", "GLYHO", "GRSEL", "GWIND", "HALKB", "HEKTS", "HTTBT", "ISATR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGYO", "ISMEN", "KARSN", "KCHOL", "KLKIM", "KLSER", "KMPUR", "KONTR", "KORDS", "LOGO", "MAGEN", "MAVI", "MGROS", "MPARK", "NATEN", "NUHCM", "OTKAR", "OYAKC", "PETKM", "PGSUS", "POLHO", "QUAGR", "SAHOL", "SASA", "SISE", "SKBNK", "SMRTG", "SOKM", "SUNTK", "TATGD", "TAVHL", "TCELL", "THYAO", "TKFEN", "TKNSA", "TOASO", "TSKB", "TTKOM", "TTRAK", "TUPRS", "TURSG", "ULKER", "VAKBN", "VESBE", "VESTL", "VKGYO", "YKBNK", "YUNSA", "ZOREN"], "ISBANK ISTIRAK": ["ANHYT", "ANSGR", "ISCTR", "ISFIN", "ISGSY", "ISGYO", "ISMEN", "ISYAT", "SISE", "TSGYO", "TSKB"], "TEMETTU 25": ["AGHOL", "AKBNK", "AKSA", "ALARK", "ANHYT", "BIMAS", "BRYAT", "CCOLA", "CIMSA", "DOAS", "DOHOL", "ECILC", "ENKAI", "EREGL", "FROTO", "GARAN", "ISCTR", "ISMEN", "KCHOL", "MAVI", "MGROS", "TCELL", "TOASO", "TUPRS", "TURSG"], "BIST TEMETTU": ["AEFES", "AFYON", "AGESA", "AGHOL", "AKBNK", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ARASE", "ARDYZ", "ASELS", "ASTOR", "ASUZU", "ATATP", "AYEN", "AYGAZ", "AZTEK", "BASGZ", "BIMAS", "BRKVY", "BRYAT", "CCOLA", "CIMSA", "CLEBI", "DOAS", "DOHOL", "EBEBK", "ECILC", "ECZYT", "EGGUB", "EGPRO", "ELITE", "EMPAE", "ENKAI", "EREGL", "FROTO", "GARAN", "GEDIK", "GENIL", "GLCVY", "GLYHO", "GOLTS", "GRSEL", "GWIND", "ISATR", "ISBTR", "ISCTR", "ISDMR", "ISMEN", "JANTS", "KCAER", "KCHOL", "KFEIN", "KLKIM", "KTLEV", "LIDER", "LILAK", "LKMNH", "LOGO", "MACKO", "MAVI", "MCARD", "MERIT", "MGROS", "MTRKS", "NTGAZ", "NUHCM", "PAGYO", "PCILT", "PLTUR", "PNLSN", "PSGYO", "SARKY", "SISE", "SMRVA", "SUNTK", "SUWEN", "TCELL", "TGSAS", "TOASO", "TRGYO", "TUPRS", "TURSG", "ULUFA", "VAKKO", "YAPRK", "YUNSA", "ZRGYO"], "ARACI KURUMLAR": ["A1CAP", "GEDIK", "GLBMD", "INFO", "ISMEN", "OSMEN", "OYYAT", "SKYMD", "TERA"], "INSAAT": ["AKFIS", "ANELE", "BRLSM", "DAPGM", "EDIP", "ENKAI", "GESAN", "GLRMK", "KUYAS", "ORGE", "SANEL", "TURGG", "UCAYM", "YAYLA"], "KOBI SANAYI": ["BAYRK", "BURVA", "DNISI", "DOGUB", "ERSU", "IZFAS", "IZINV", "LUKSK", "NIBAS", "ONCSM", "ORCAY", "OZRDN", "POLTK", "PRZMA", "RODRG", "RTALB", "RUZYE", "SAMAT", "SEYKM", "VANGD", "YAPRK"], "BIST ANA": ["A1YEN", "ACSEL", "ADEL", "ADESE", "AFYON", "AHSGY", "AKENR", "AKHAN", "AKMGY", "AKSUE", "ALCAR", "ALCTL", "ALKA", "ALKIM", "ALKLC", "ALVES", "ANELE", "ANGEN", "ARENA", "ARFYE", "ARSAN", "ARTMS", "ARZUM", "ASUZU", "AVGYO", "AVHOL", "AVOD", "AYCES", "AYEN", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BANVT", "BAYRK", "BEGYO", "BESTE", "BEYAZ", "BIGCH", "BIGTK", "BIZIM", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORSK", "BOSSA", "BRKVY", "BRLSM", "BULGS", "BURCE", "BVSAN", "BYDNR", "CATES", "CELHA", "CEMAS", "CEMTS", "CEOEM", "CGCAM", "CMBTN", "CONSE", "CRFSA", "CUSAN", "DAGI", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DGATE", "DGNMO", "DITAS", "DMRGD", "DMSAS", "DNISI", "DOCO", "DOFER", "DOKTA", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EDATA", "EDIP", "EGEGY", "EGEPO", "EGSER", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMPAE", "ENDAE", "ENSRI", "EPLAS", "ERBOS", "ERCB", "ESCOM", "ETILR", "EYGYO", "FADE", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "GARFA", "GEDZA", "GENKM", "GEREL", "GLRYH", "GOODY", "GSDDE", "GSDHO", "GUNDG", "GZNMI", "HATEK", "HDFGS", "HEDEF", "HKTM", "HOROZ", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IHAAS", "IHGZT", "IHLGM", "IHYAY", "IMASM", "INFO", "INGRM", "INTEM", "ISGSY", "ISSEN", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KARTN", "KBORU", "KFEIN", "KGYO", "KIMMR", "KLMSN", "KLSYN", "KNFRT", "KONKA", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KTSKR", "KUTPO", "KZGYO", "LIDFA", "LKMNH", "LUKSK", "LXGYO", "LYDYE", "MAALT", "MACKO", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MCARD", "MEDTR", "MEKAG", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MHRGY", "MNDRS", "MNDTR", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "NETAS", "NETCD", "NIBAS", "NUGYO", "OBASE", "OFSYM", "ONCSM", "ONRYT", "OSMEN", "OSTIM", "OTTO", "OZGYO", "OZSUB", "OZYSR", "PAMEL", "PCILT", "PEKGY", "PENGD", "PENTA", "PETUN", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "PRDGS", "PRKAB", "PRKME", "PRZMA", "RAYSG", "RTALB", "RUBNS", "RUZYE", "SAFKR", "SANFM", "SANKO", "SAYAS", "SEGMN", "SEGYO", "SELVA", "SERNT", "SKTAS", "SKYMD", "SMART", "SMRVA", "SNICA", "SOKE", "SVGYO", "TARKM", "TATGD", "TBORG", "TEHOL", "TEKTU", "TERA", "TGSAS", "TKNSA", "TLMAN", "TMPOL", "TRILC", "TSGYO", "TUCLK", "TURGG", "UCAYM", "UFUK", "ULUFA", "ULUSE", "ULUUN", "UNLU", "VBTYZ", "VERTU", "VERUS", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YESIL", "YIGIT", "YKSLN", "YUNSA", "ZEDUR", "ZGYO"], "BIST HALKA ARZ": ["AAGYO", "AHSGY", "AKFIS", "AKHAN", "ALKLC", "ALTNY", "ARFYE", "ARMGD", "ATATR", "BAHKM", "BALSU", "BESTE", "BIGEN", "BINBN", "BULGS", "CEMZY", "CGCAM", "DCTTR", "DOFRB", "DSTKF", "DURKN", "ECOGR", "EFOR", "EGEGY", "EMPAE", "ENDAE", "FRMPL", "GENKM", "GLRMK", "GUNDG", "HOROZ", "HRKET", "KLYPV", "KOCMT", "KOTON", "LILAK", "LXGYO", "MCARD", "MEYSU", "MOPAS", "NETCD", "ONRYT", "OZATD", "OZYSR", "PAHOL", "SEGMN", "SERNT", "SMRVA", "SVGYO", "TCKRC", "UCAYM", "VAKFA", "VSNMD", "YIGIT", "ZERGY", "ZGYO"], "HALKBANK SURD-30": ["AEFES", "ALARK", "ANSGR", "ARCLK", "ASELS", "BSOKE", "CCOLA", "CIMSA", "DOHOL", "ENJSA", "ENKAI", "FROTO", "GARAN", "HALKB", "ISCTR", "KCHOL", "MAGEN", "MAVI", "MGROS", "SAHOL", "SISE", "SOKM", "TCELL", "THYAO", "TSKB", "TTRAK", "ULKER", "VESTL", "YKBNK", "ZOREN"], "OSMANLI DEGER-25": ["AEFES", "AGHOL", "ARDYZ", "ATATP", "CLEBI", "DOCO", "DOHOL", "EKGYO", "GLYHO", "GRSEL", "KLKIM", "LOGO", "MAVI", "MGROS", "MPARK", "PGSUS", "RYGYO", "TAVHL", "TCELL", "TEHOL", "THYAO", "TRENJ", "TRGYO", "TTKOM", "YEOTK"], "TEMETTU 10 YIL": ["ADEL", "AEFES", "AGHOL", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ASELS", "AYGAZ", "BIMAS", "BRYAT", "CCOLA", "CEMTS", "ECILC", "ECZYT", "EGEEN", "EGGUB", "ENKAI", "FROTO", "ISMEN", "JANTS", "KCHOL", "LKMNH", "NUHCM", "PAGYO", "SAHOL", "SARKY", "SELEC", "SISE", "TOASO", "VESBE", "YGGYO"], "TEMETTU 5 YIL": ["ADEL", "AEFES", "AGHOL", "AKBNK", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ARDYZ", "ASELS", "AYGAZ", "BEYAZ", "BIMAS", "BRISA", "BRYAT", "CCOLA", "CEMTS", "DOAS", "DOHOL", "ECILC", "ECZYT", "EGEEN", "EGGUB", "EGPRO", "ENJSA", "ENKAI", "FROTO", "GARAN", "GENTS", "GOLTS", "ISATR", "ISBTR", "ISCTR", "ISMEN", "JANTS", "KCHOL", "KFEIN", "LKMNH", "LOGO", "MAVI", "MERCN", "MSGYO", "MTRKS", "NTGAZ", "NUHCM", "OSMEN", "PAGYO", "SAHOL", "SARKY", "SELEC", "SISE", "TCELL", "TOASO", "TTRAK", "TURSG", "VAKKO", "VESBE", "YAPRK", "YGGYO", "YUNSA"], "Aracı Kurumlar": ["A1CAP", "GEDIK", "GLBMD", "INFO", "ISMEN", "OSMEN", "OYYAT", "SKYMD", "TERA", "UNLU"], "Bankacılık": ["AKBNK", "ALBRK", "GARAN", "HALKB", "ICBCT", "ISATR", "ISBTR", "ISCTR", "ISKUR", "KLNMA", "QNBTR", "SKBNK", "TSKB", "VAKBN", "YKBNK"], "Bilgisayar Topt": ["ARENA", "DESPC", "DGATE", "HTTBT", "INDES", "INGRM", "PENTA"], "Boya": ["DYOBY", "EMNIS", "IZFAS", "MRSHL"], "Cam": ["CGCAM", "SISE"], "Yabancı Ortak": ["ADEL", "AEFES", "AGESA", "AKCNS", "AKGRT", "AKMGY", "ALCAR", "ALCTL", "ASUZU", "AYGAZ", "BANVT", "BASCM", "BFREN", "BRISA", "CCOLA", "CMENT", "CONSE", "CRFSA", "DMRGD", "DURDO", "EGPRO", "FROTO", "GMTAS", "GOKNR", "ICBCT", "IZINV", "KENT", "KLSER", "KLSYN", "KMPUR", "KONYA", "KOTON", "KRGYO", "MNDTR", "MPARK", "MRSHL", "NETAS", "NETCD", "ORGE", "OYAKC", "OZRDN", "PKART", "POLTK", "PRKAB", "QNBTR", "RAYSG", "RYSAS", "SKBNK", "SOKM", "TAVHL", "TBORG", "TCELL", "TOASO", "TTRAK", "ULKER", "VERUS"], "Dayanıklı Tüketim": ["ALCAR", "ARCLK", "ARZUM", "IHEVA", "KLMSN", "SAFKR", "SNICA", "VESBE", "VESTL"], "Demir-Çelik Döküm": ["BMSCH", "BMSTL", "BURCE", "CEMAS", "CUSAN", "DMSAS", "ERBOS", "EUREN"], "Demir-Çelik Temel": ["BRSAN", "CELHA", "CEMTS", "DOFER", "ERCB", "EREGL", "ISDMR", "IZMDC", "KCAER", "KOCMT", "KRDMA", "KRDMB", "KRDMD", "OZYSR", "YKSLN"], "Deri Giyim": ["DERHL", "DERIM", "DESA", "ENSRI"], "Elektrik-Gaz Dağ": ["AHGAZ", "ARASE", "BASGZ", "ENERY", "ENJSA"], "Elektrik Kurulum": ["ALFAS", "ASTOR", "CWENE", "EMKEL", "EUPWR", "GESAN", "KLYPV", "KONTR", "MAGEN", "MOGAN", "NATEN", "ORGE", "SAYAS", "SMRTG", "ULUSE"], "Elektrik Üretim": ["A1YEN", "AKENR", "AKFYE", "AKSEN", "AKSUE", "ARFYE", "AYDEM", "AYEN", "BIGEN", "BIOEN", "CANTE", "CATES", "CONSE", "ECOGR", "ENDAE", "ENTRA", "ESEN", "GWIND", "HUNER", "IZENR", "ODAS", "PAMEL", "TATEN", "TRENJ", "YAYLA", "ZEDUR", "ZOREN"], "Makine-Teçhizat Üretim": ["EKOS", "HKTM", "HRKET", "IMASM", "MAKIM", "OZATD", "SANEL", "SILVR"], "Endüstriyel Tekstil": ["AKSA", "KOPOL", "KORDS", "SASA"], "Fin.Kira Faktoring": ["CRDFA", "DSTKF", "GARFA", "ISFIN", "LIDFA", "QNBFK", "SEKFK", "UFUK", "ULUFA", "VAKFA", "VAKFN"], "GYO": ["ADESE", "ADGYO", "AGYO", "AHSGY", "AKFGY", "AKMGY", "AKSGY", "ALGYO", "ASGYO", "ATAGY", "AVGYO", "AVPGY", "BEGYO", "DAPGM", "DGGYO", "DZGYO", "EDIP", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "HLGYO", "IDGYO", "IHLGM", "ISGYO", "KGYO", "KLGYO", "KRGYO", "KZBGY", "KZGYO", "MHRGY", "MRGYO", "MSGYO", "NUGYO", "OZGYO", "OZKGY", "PAGYO", "PEKGY", "PSGYO", "RYGYO", "SEGYO", "SNGYO", "SRVGY", "SURGY", "TDGYO", "TRGYO", "TSGYO", "TURGG", "VKGYO", "VRGYO", "YGGYO", "YGYO", "ZERGY", "ZGYO", "ZRGYO"], "Gıda": ["ALKLC", "ARMGD", "ATAKP", "AVOD", "BALSU", "BESLR", "BIGCH", "BORSK", "BYDNR", "CEMZY", "DARDL", "DMRGD", "DUNYH", "DURKN", "EFOR", "EKIZ", "EKSUN", "ELITE", "ETILR", "FADE", "FRIGO", "GOKNR", "GUNDG", "IZINV", "KAYSE", "KENT", "KRVGD", "KTSKR", "KUVVA", "LYDYE", "MERKO", "MEYSU", "OBAMS", "OFSYM", "OTTO", "OYLUM", "PENGD", "PETUN", "SEGMN", "SELVA", "SOKE", "TABGD", "TATGD", "TUKAS", "ULKER", "ULUUN", "VANGD", "YAPRK", "YYLGD"], "Havayolları ve Hizm.": ["CLEBI", "PGSUS", "TAVHL", "THYAO"], "Hayvancılık": ["BANVT", "OZSUB"], "Holdingler": ["AGHOL", "AKYHO", "ALARK", "ATSYH", "AVHOL", "BERA", "BINHO", "BRYAT", "COSMO", "DENGE", "DOHOL", "ECZYT", "EUHOL", "GLRYH", "GLYHO", "GSDHO", "HEDEF", "IEYHO", "IHLAS", "INVEO", "INVES", "ISBIR", "KCHOL", "KERVN", "KLRHO", "LRSHO", "LYDHO", "MARKA", "METRO", "MMCAS", "NTHOL", "PAHOL", "POLHO", "SAHOL", "TEHOL", "TRHOL", "VERUS", "YESIL"], "Kablo": ["ALVES", "GEREL", "PRKAB"], "Kağıt Ürünleri": ["ALKA", "BAKAB", "BARMA", "DURDO", "KAPLM", "KARTN", "KONKA", "KRPLS", "LILAK", "MNDTR", "ORMA", "PRZMA", "SAMAT", "TEZOL", "VKING"], "Kimyasal Ürün": ["ACSEL", "ALKIM", "BAHKM", "BNTAS", "FRMPL", "GEDZA", "ISKPL", "KMPUR", "MARMR", "MERCN", "OZRDN", "POLTK", "RNPOL", "SANFM", "SEKUR", "SEYKM", "SODSN", "TMPOL"], "Kırtasiye": ["ADEL", "GIPTA"], "Madencilik": ["CVKMD", "MARBL", "PRKME", "RUZYE", "TRALT", "TRMET", "VSNMD"], "Medya": ["BIGTK", "CEOEM", "HURGZ", "IHAAS", "IHGZT", "IHYAY", "PCILT"], "Meşrubat İçecek": ["AEFES", "CCOLA", "ERSU", "KNFRT", "KRSTL", "ORCAY", "PINSU", "PNSUT", "TBORG"], "Mobilya": ["DGNMO", "GENTS", "KLSYN", "SUMAS", "YATAS", "YONGA"], "Otomotiv": ["ASUZU", "DOAS", "FROTO", "KARSN", "OTKAR", "TMSN", "TOASO", "TTRAK"], "Otomotiv Lastiği": ["BRISA", "GOODY"], "Otomotiv Parçası": ["BALAT", "BFREN", "DITAS", "DOKTA", "EGEEN", "FMIZP", "JANTS", "KATMR", "PARSN", "TUCLK", "YIGIT"], "Pazarlama": ["SANKO", "TGSAS"], "Perakande - Ticaret": ["BIMAS", "BIZIM", "CASA", "CRFSA", "EBEBK", "GMTAS", "GRTHO", "KIMMR", "MGROS", "MOPAS", "PSDTC", "SOKM", "TKNSA", "VAKKO"], "Petrol": ["AYGAZ", "MEPET", "NTGAZ", "PETKM", "TRCAS", "TUPRS"], "Savunma": ["ALTNY", "ASELS", "ONRYT", "SDTTR"], "Sağlık ve İlaç": ["ANGEN", "DEVA", "ECILC", "EGEPO", "GENIL", "LKMNH", "MEDTR", "MPARK", "ONCSM", "RTALB", "SELEC", "TNZTP", "TRILC"], "Seramik": ["BIENY", "EGSER", "KLKIM", "KLSER", "KUTPO", "USAK"], "Sigorta": ["AGESA", "AKGRT", "ANHYT", "ANSGR", "RAYSG", "TURSG"], "Spor": ["BJKAS", "FENER", "GSRAY", "TSPOR"], "Tarım Kimya": ["BAGFS", "EGGUB", "GUBRF", "HEKTS", "TARKM"], "Teknoloji": ["ARDYZ", "ATATP", "AZTEK", "DOFRB", "EDATA", "ESCOM", "FONET", "FORTE", "INTEK", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MIATK", "MTRKS", "OBASE", "ODINE", "PAPIL", "PATEK", "PKART", "SMART", "VBTYZ"], "Tekstil Entegre": ["ARSAN", "ARTMS", "ATEKS", "BAYRK", "BLCYT", "BOSSA", "BRKO", "BRMEN", "DAGI", "DIRIT", "HATEK", "ISSEN", "KOTON", "KRTEK", "LUKSK", "MAVI", "MEGAP", "MNDRS", "RALYH", "RODRG", "RUBNS", "SKTAS", "SNPAM", "SONME", "SUNTK", "SUWEN", "YUNSA"], "Turizm": ["AVTUR", "AYCES", "BLUME", "GZNMI", "KSTUR", "MAALT", "MARTI", "MERIT", "PKENT", "TEKTU", "ULAS"], "Ulaştırma-Loj": ["BEYAZ", "BINBN", "BORLS", "DOCO", "ESCAR", "GRSEL", "GSDDE", "HATSN", "HOROZ", "LIDER", "PASEU", "PLTUR", "RYSAS", "TLMAN", "TUREX"], "Varlık Yönetim": ["BRKVY", "GLCVY", "SMRVA"], "Yatırım Ortaklıkları": ["ATLAS", "BULGS", "ETYAT", "EUKYO", "EUYO", "GOZDE", "GRNYO", "HDFGS", "HUBVC", "ICUGS", "ISGSY", "ISYAT", "MTRYO", "OYAYO", "PRDGS", "VERTU", "VKFYO"], "Çimento": ["AFYON", "AKCNS", "BASCM", "BOBET", "BSOKE", "BTCIM", "BUCIM", "CIMSA", "CMBTN", "CMENT", "GOLTS", "KONYA", "LMKDC", "NIBAS", "NUHCM", "OYAKC"], "İletişim": ["MOBTL", "TCELL", "TTKOM"], "İletişim Cihaz": ["ALCTL", "KAREL", "NETAS", "REEDR"], "İnşaat Malz": ["ANELE", "AYES", "BRKSN", "BRLSM", "BURVA", "BVSAN", "DNISI", "DOGUB", "EGPRO", "EPLAS", "FORMT", "INTEM", "KBORU", "MAKTK", "MEGMT", "MEKAG", "MZHLD", "PNLSN", "QUAGR", "SARKY", "SERNT", "YBTAS"], "İnşaat-Taahhüt": ["AKFIS", "ENKAI", "GLRMK", "KUYAS", "TKFEN", "YEOTK", "YYAPI"], "BIST Temettü 25": ["AGHOL", "AKBNK", "AKSA", "ALARK", "ANHYT", "ASTOR", "BIMAS", "BRYAT", "CCOLA", "DOAS", "DOHOL", "ENKAI", "FROTO", "GARAN", "ISCTR", "ISMEN", "KCHOL", "MAVI", "MGROS", "SISE", "TCELL", "TOASO", "TTRAK", "TUPRS", "TURSG"], "Küçük Sermaye": ["DIRIT", "EMNIS", "EUYO", "YONGA", "GLBMD", "SNPAM", "ATAGY", "IDGYO", "BRMEN", "ETYAT", "EUKYO", "AGYO", "KRTEK", "SODSN", "RODRG", "MTRYO", "CASA", "SANKO", "CUSAN", "VKING", "MZHLD", "INTEK", "ATEKS", "DESPC", "SILVR", "TSGYO", "LUKSK", "VKFYO", "YBTAS", "AKYHO", "EKIZ", "SANEL", "OYLUM", "SONME", "ATSYH", "BAKAB", "AVTUR", "OYAYO", "CEOEM", "DERIM", "SUMAS", "BRKSN", "IHEVA", "SAMAT", "DGGYO", "MEGAP", "OBASE", "QNBFK", "ATLAS", "ERSU", "ORMA", "IHYAY", "DOFER", "ORCAY", "SEKFK", "YKSLN", "FADE", "ULAS", "ZEDUR", "PAMEL", "GRNYO", "EYGYO", "BASCM", "ISSEN", "KNFRT", "INTEM", "ACSEL", "IHGZT", "SKYMD", "KENT", "KRPLS", "KRGYO", "HATEK", "AVGYO", "MAKIM", "BEYAZ", "MEDTR", "PSDTC", "OZGYO", "CMENT", "GSDDE", "BIZIM", "VERTU", "GEDZA", "EGSER", "TLMAN", "DOKTA", "BYDNR", "MARBL", "KERVN", "UNLU", "DURDO", "ARTMS", "SEYKM", "MEPET", "ANGEN", "KLNMA", "HUBVC", "ETILR", "DZGYO", "RNPOL", "KLMSN", "IZINV", "DURKN", "FLAP", "EPLAS", "COSMO", "ISYAT", "PRKME", "BAYRK", "FMIZP", "PRDGS", "PNLSN", "SERNT", "BNTAS", "DMSAS", "AKMGY", "INGRM", "GARFA", "OSMEN", "YESIL", "MTRKS", "MSGYO", "KUTPO", "EKSUN", "HKTM", "SEGYO", "MHRGY", "HURGZ", "MMCAS", "BOSSA", "MNDTR", "CELHA", "AVHOL", "ICBCT", "DNISI", "SKTAS", "ARZUM", "SEKUR", "BALAT", "GOODY", "YAYLA", "SMART", "TDGYO", "KIMMR", "MARKA", "PINSU", "TURGG", "BMSCH", "PKART", "AVOD", "KZGYO", "TUCLK", "MEKAG", "RUBNS", "AZTEK", "OZSUB", "DGATE", "KONKA", "BEGYO", "ISBIR", "EDIP", "VBTYZ", "ENPRA", "PKENT", "ELITE", "ULUSE", "ULUFA", "DAGI", "CONSE", "YAPRK", "BANVT", "OFSYM", "DESA", "ONRYT", "PETUN", "CATES", "ALCAR", "SNICA", "KLSYN", "OZRDN", "DENGE", "MACKO", "PRKAB", "KFEIN", "PLTUR", "FRMPL", "OZYSR", "PCILT", "RTALB", "INVEO", "DYOBY", "OTTO", "MERKO", "OSTIM", "BRKVY", "VRGYO", "ATAKP", "MAKTK", "ZGYO", "MERIT", "GEDIK", "LIDFA", "KOPOL", "KRSTL", "QNBTR", "BIGTK", "BRKO", "ARFYE", "KOCMT", "NIBAS", "ALKA", "BESTE", "ENSRI", "AKHAN", "BLCYT", "AYCES", "NETAS", "NUGYO", "DARDL", "BVSAN", "EMPAE", "PNSUT", "EUHOL", "YUNSA", "GLCVY", "KOTON", "SANFM", "AYEN", "DGNMO", "BRLSM", "IHLGM", "ALCTL", "BIGCH", "DOGUB", "HOROZ", "KTSKR", "A1YEN", "MNDRS", "DERHL", "VAKKO", "MERCN", "CGCAM", "RAYSG", "UCAYM", "YYAPI", "GENKM", "SKYLP", "ARENA", "KRVGD", "DITAS", "AKENR", "ASGYO", "TGSAS", "SELVA", "YGYO", "INFO", "HRKET", "TATGD", "GLRYH", "EGEPO", "ENDAE", "DCTTR", "SOKE", "PRZMA", "BIENY"], "Tüm 500'ler": ["AHGAZ", "AKCNS", "AKFYE", "AKSA", "AKSEN", "ALFAS", "ALKA", "ALKIM", "ALKLC", "ARCLK", "ARENA", "ARMDA", "ARMGD", "ARZUM", "ASELS", "ASTOR", "ASUZU", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAKAB", "BANVT", "BARMA", "BASGZ", "BIENY", "BIMAS", "BIZIM", "BOBET", "BORSK", "BRISA", "BRLSM", "BRSAN", "BSOKE", "BTCIM", "BUCIM", "CARES", "CCOLA", "CELHA", "CEMTS", "CIMSA", "CLEBI", "CRFSA", "CWENE", "DARDL", "DEVA", "DGNMO", "DOAS", "DOKTA", "DYOBY", "EBEBK", "ECILC", "EFORC", "EGEEN", "EGPRO", "EGSER", "EKSUN", "ENERY", "ENJSA", "ENKAI", "ERBOS", "ERCB", "EREGL", "EUPWR", "EUREN", "FROTO", "GENIL", "GESAN", "GLRMK", "GOKNR", "GOLTS", "GOODY", "GRSEL", "GUBRF", "HEKTS", "HOROZ", "INDES", "ISDMR", "ISSEN", "IZDMR", "IZENR", "JANTS", "KAREL", "KARSN", "KAYSE", "KCAER", "KENT", "KERVT", "KLKIM", "KLSER", "KLYPV", "KMPUR", "KOCMT", "KONKA", "KONYA", "KOPOL", "KORDS", "KORDSA", "KOTON", "KOZAL", "KRDMD", "KRTEK", "KRVGD", "LILAK", "LMKDC", "MAKIM", "MAVI", "MEGMT", "MGMTL", "MGROS", "MNDTR", "MOGAN", "MOPAS", "NTGAZ", "NUHCM", "OBAMS", "ODAS", "OFSYM", "OTKAR", "OYAKC", "OZRDN", "OZYSR", "PARSN", "PCILT", "PENTA", "PETKM", "PETUN", "PGSUS", "PNLSN", "PNSUT", "QUAGR", "RYSAS", "SARKY", "SASA", "SELEC", "SERNT", "SISE", "SMRTG", "SNICA", "SOKE", "SOKM", "SUNTK", "TABGD", "TATGD", "TAVHL", "TCELL", "TEZOL", "THYAO", "TKFEN", "TKNSA", "TMSN", "TOASO", "TRILC", "TTCOM", "TTKOM", "TTRAK", "TUKAS", "TUPRS", "ULKER", "ULUUN", "USAK", "VAKKO", "VESBE", "VESTL", "YATAS", "YEOTK", "YIGIT", "YUNSA", "YYLGD", "ZOREN"], "GÖZDE": ["LMKDC", "LILAK", "BORSK", "VAKKO", "BYDNR", "BOBET", "KMPUR", "DGNMO", "PNLSN", "KOCMT", "KOTON", "RUBNS", "KLSER", "GESAN", "EUPWR", "SNICA", "AGROT", "BINHO", "TUPRS", "EREGL", "VESBE", "TTRAK", "CLEBI", "AVPGY", "DOAS", "KCHOL", "AKSA", "ANHYT", "NUHCM", "EGPRO", "AYEN"], "Elindekiler": ["LMKDC", "LILAK", "AVPGY", "KMPUR", "DOAS", "TTRAK", "CLEBI"]};
+        const allSymbols = ["A1CAP", "A1YEN", "ACSEL", "ADEL", "ADESE", "ADGYO", "AEFES", "AFYON", "AGESA", "AGHOL", "AGROT", "AGYO", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKFYE", "AKGRT", "AKHAN", "AKMGY", "AKSA", "AKSEN", "AKSGY", "AKSUE", "AKYHO", "ALARK", "ALBRK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKA", "ALKIM", "ALKLC", "ALTINS1", "ALTNY", "ALVES", "ANELE", "ANGEN", "ANHYT", "ANSGR", "ARASE", "ARCLK", "ARDYZ", "ARENA", "ARFYE", "ARMGD", "ARSAN", "ARTMS", "ARZUM", "ASELS", "ASGYO", "ASTOR", "ASUZU", "ATAGY", "ATAKP", "ATATP", "ATATR", "ATEKS", "ATLAS", "ATSYH", "AVGYO", "AVHOL", "AVOD", "AVPGY", "AVTUR", "AYCES", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BALAT", "BALSU", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BEGYO", "BERA", "BESLR", "BESTE", "BEYAZ", "BFREN", "BIENY", "BIGCH", "BIGEN", "BIGTK", "BIMAS", "BINBN", "BINHO", "BIOEN", "BIZIM", "BJKAS", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORLS", "BORSK", "BOSSA", "BRISA", "BRKO", "BRKSN", "BRKVY", "BRLSM", "BRMEN", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "BUCIM", "BULGS", "BURCE", "BURVA", "BVSAN", "BYDNR", "CANTE", "CASA", "CATES", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CEOEM", "CGCAM", "CIMSA", "CLEBI", "CMBTN", "CMENT", "CONSE", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CVKMD", "CWENE", "DAGI", "DAPGM", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DGATE", "DGGYO", "DGNMO", "DIRIT", "DITAS", "DMLKTG", "DMRGD", "DMSAS", "DNISI", "DOAS", "DOCO", "DOFER", "DOFRB", "DOGUB", "DOHOL", "DOKTA", "DSTKF", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EBEBK", "ECILC", "ECOGR", "ECZYT", "EDATA", "EDIP", "EFOR", "EGEEN", "EGEGY", "EGEPO", "EGGUB", "EGPRO", "EGSER", "EKGYO", "EKIZ", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMNIS", "EMPAE", "ENDAE", "ENERY", "ENJSA", "ENKAI", "ENSRI", "ENTRA", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "ESCAR", "ESCOM", "ESEN", "ETILR", "ETYAT", "EUHOL", "EUKYO", "EUPWR", "EUREN", "EUYO", "EYGYO", "FADE", "FENER", "FLAP", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "FROTO", "FZLGY", "GARAN", "GARFA", "GATEG", "GEDIK", "GEDZA", "GENIL", "GENKM", "GENTS", "GEREL", "GESAN", "GIPTA", "GLBMD", "GLCVY", "GLRMK", "GLRYH", "GLYHO", "GMTAS", "GOKNR", "GOLTS", "GOODY", "GOZDE", "GRNYO", "GRSEL", "GRTHO", "GSDDE", "GSDHO", "GSRAY", "GUBRF", "GUNDG", "GWIND", "GZNMI", "HALKB", "HATEK", "HATSN", "HDFGS", "HEDEF", "HEKTS", "HKTM", "HLGYO", "HOROZ", "HRKET", "HTTBT", "HUBVC", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHAAS", "IHEVA", "IHGZT", "IHLAS", "IHLGM", "IHYAY", "IMASM", "INDES", "INFO", "INGRM", "INTEK", "INTEM", "INVEO", "INVES", "ISATR", "ISBIR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGSY", "ISGYO", "ISKPL", "ISKUR", "ISMEN", "ISSEN", "ISYAT", "IZENR", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KBORU", "KCAER", "KCHOL", "KENT", "KERVN", "KFEIN", "KGYO", "KIMMR", "KLGYO", "KLKIM", "KLMSN", "KLNMA", "KLRHO", "KLSER", "KLSYN", "KLYPV", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONTR", "KONYA", "KOPOL", "KORDS", "KOTON", "KRDMA", "KRDMB", "KRDMD", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KSTUR", "KTLEV", "KTSKR", "KUTPO", "KUVVA", "KUYAS", "KZBGY", "KZGYO", "LIDER", "LIDFA", "LILAK", "LINK", "LKMNH", "LMKDC", "LOGO", "LRSHO", "LUKSK", "LXGYO", "LYDHO", "LYDYE", "MAALT", "MACKO", "MAGEN", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MAVI", "MCARD", "MEDTR", "MEGAP", "MEGMT", "MEKAG", "MEPET", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MGROS", "MHRGY", "MIATK", "MMCAS", "MNDRS", "MNDTR", "MOBTL", "MOGAN", "MOPAS", "MPARK", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "MTRYO", "MZHLD", "NATEN", "NETAS", "NETCD", "NIBAS", "NTGAZ", "NTHOL", "NUGYO", "NUHCM", "OBAMS", "OBASE", "ODAS", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORCAY", "ORGE", "ORMA", "OSMEN", "OSTIM", "OTKAR", "OTTO", "OYAKC", "OYAYO", "OYLUM", "OYYAT", "OZATD", "OZGYO", "OZKGY", "OZRDN", "OZSUB", "OZYSR", "PAGYO", "PAHOL", "PAMEL", "PAPIL", "PARSN", "PASEU", "PATEK", "PCILT", "PEKGY", "PENGD", "PENTA", "PETKM", "PETUN", "PGSUS", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "POLHO", "POLTK", "PRDGS", "PRKAB", "PRKME", "PRZMA", "PSDTC", "PSGYO", "QNBFK", "QNBTR", "QUAGR", "RALYH", "RAYSG", "REEDR", "RGYAS", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "RYGYO", "RYSAS", "SAFKR", "SAHOL", "SAMAT", "SANEL", "SANFM", "SANKO", "SARKY", "SASA", "SAYAS", "SDTTR", "SEGMN", "SEGYO", "SEKFK", "SEKUR", "SELEC", "SELVA", "SERNT", "SEYKM", "SILVR", "SISE", "SKBNK", "SKTAS", "SKYLP", "SKYMD", "SMART", "SMRTG", "SMRVA", "SNGYO", "SNICA", "SNPAM", "SODSN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SUNTK", "SURGY", "SUWEN", "SVGYO", "TABGD", "TARKM", "TATEN", "TATGD", "TAVHL", "TBORG", "TCELL", "TCKRC", "TDGYO", "TEHOL", "TEKTU", "TERA", "TEZOL", "TGSAS", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TMSN", "TNZTP", "TOASO", "TRALT", "TRCAS", "TRENJ", "TRGYO", "TRHOL", "TRILC", "TRMET", "TSGYO", "TSKB", "TSPOR", "TTKOM", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "TUREX", "TURGG", "TURSG", "UCAYM", "UFUK", "ULAS", "ULKER", "ULUFA", "ULUSE", "ULUUN", "UMPAS", "UNLU", "USAK", "VAKBN", "VAKFA", "VAKFN", "VAKKO", "VANGD", "VBTYZ", "VERTU", "VERUS", "VESBE", "VESTL", "VKFYO", "VKGYO", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YBTAS", "YEOTK", "YESIL", "YGGYO", "YIGIT", "YKBNK", "YKSLN", "YONGA", "YUNSA", "YYAPI", "YYLGD", "ZEDUR", "ZERGY", "ZGYO", "ZOREN", "ZRGYO"];
+        const randomSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+        let currentSymbol = randomSymbol; 
+        let activeList = symbolLists["Tüm Hisseler"];
+        let rawData = null;
+        let tvRawData = null;
+        let goldData = null;  // { dates, prices, loadedYears }
+        let usdData  = null;  // { dates, prices, loadedYears }
+        let activeTimeRange = '5Y';
+        let isMeasureMode = false;
+        let customListKeys = new Set();
+
+        const timeRangeMap = {
+            '1H': {unit: 'days', value: 7},
+            '1A': {unit: 'months', value: 1}, 
+            '3A': {unit: 'months', value: 3},  
+            '6A': {unit: 'months', value: 6}, 
+            '1Y': {unit: 'years', value: 1},   
+            '3Y': {unit: 'years', value: 3},
+            '5Y': {unit: 'years', value: 5},
+            '10Y': {unit: 'years', value: 10},
+            '15Y': {unit: 'years', value: 15},
+            '20Y': {unit: 'years', value: 20}
+        };
+
+        const externalLinks = [
+            { name: "🤖 AI", url: "__AI__" },
+            { name: "Grok", url: "https://x.com/i/grok?text=__SYM__+hakkında X'te bulduğun en güncel haberleri tarihleriyle birlikte derle. Şirketi genel olarak tanıt, son fiyatı, çarpanları, bulunduğu şehir, ana hissedarları, çalışan sayısı, ihracat durumu vb. Şirketin geleceğe dönük bir hikayesi var mı? Sektörün önümüzdeki 5 yıl için global büyüme tahminleri? Aracı kurumların hedef fiyatlarını ver. Yatırım açısından hisse hakkındaki genel görüşünü yaz." },
+            { name: "Google", url: "https://www.google.com/search?q=__SYM__+hakkındaki son haberleri tarihleriyle birlikte derle. Şirketi genel olarak tanıt( son fiyatı, çarpanları, bulunduğu şehir, ana hissedarları, çalışan sayısı, ihracat durumu vb.). Şirketin geleceğe dönük bir hikayesi var mı? Aracı kurumların hedef fiyatlarını ver. Yatırım açısından hisse hakkındaki görüşünü yaz." },
+            { name: "Midas", url: "https://www.getmidas.com/canli-borsa/__SYM__-hisse/" },
+            { name: "PDF", url: "https://atayatirim.com.tr/robot-hisse-analizi/__SYM__-robot-hisse-analiz.pdf" }, 
+            { name: "T-S", url: "https://fintables.com/sirketler/__SYM__/sermaye-artirimlari-temettuler" },
+            { name: "Tem", url: "https://www.getmidas.com/canli-borsa/__SYM__-hisse/temettu/" },
+            { name: "Ekofin", url: "https://www.ekofin.net/sirket/detay/__SYM__" },
+            { name: "Fonlar", url: "https://www.ekofin.net/sirket/detay/__SYM__/hisseyi-tasiyan-fonlar" },           
+            { name: "Analist", url: "https://fintables.com/sirketler/__SYM__/analist-tavsiyeleri" },
+            { name: "Akış", url: "https://fintables.com/sirketler/__SYM__/akis" },
+            { name: "Tem2", url: "https://temettuhisseleri.com/hisseanaliz/?kod=__SYM__" },            
+            { name: "Haber", url: "https://borsacoo.com/panel" }
+        ];
+
+        // --- ARAMA / OTOMATİK TAMAMLAMA ---
+        const inp = document.getElementById('symbol');
+        inp.addEventListener('input', e => showSugg(e.target.value));
+        inp.addEventListener('blur', () => setTimeout(() => document.getElementById('suggestions').style.display='none', 200));
+        inp.addEventListener('keydown', e => {
+            if(e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('suggestions').style.display='none';
+                currentSymbol = inp.value.toUpperCase();
+                loadData();
+                inp.blur();
+            }
+        });
+
+        function highlightMatch(t, q) {
+            const r = new RegExp(`(${q})`, 'gi');
+            return t.replace(r, `<span style="color:#5D5CDE;font-weight:bold">$1</span>`);
+        }
+
+        function showSugg(q) {
+            const c = document.getElementById('suggestions');
+            if(!q) { c.style.display='none'; return; }
+            const f = allSymbols.filter(s => s.includes(q.toUpperCase()));
+            if(f.length === 0) { c.style.display='none'; return; }
+            c.innerHTML = '';
+            f.slice(0, 15).forEach(s => { 
+                const d = document.createElement('div');
+                d.className = 'suggestion-item';
+                d.innerHTML = highlightMatch(s, q);
+                d.onclick = () => { inp.value = s; currentSymbol = s; c.style.display='none'; loadData(); };
+                c.appendChild(d);
+            });
+            c.style.display = 'block';
+        }
+
+        // --- LİSTE VE NAVİGASYON ---
+        function changeList() {
+            const selectVal = document.getElementById('listSelect').value;
+            activeList = symbolLists[selectVal];
+            currentSymbol = activeList[0];
+            inp.value = currentSymbol;
+            document.getElementById('stockListDropdown').classList.remove('open');
+            loadData();
+            schedulePrefetch(0);
+            updateSymbolIndex();
+            updateDeleteListBtn();
+        }
+
+        function updateDeleteListBtn() {
+            const selectVal = document.getElementById('listSelect').value;
+            const btn = document.getElementById('deleteListBtn');
+            if (btn) btn.style.display = customListKeys.has(selectVal) ? 'flex' : 'none';
+        }
+
+        function deleteCustomList() {
+            const selectVal = document.getElementById('listSelect').value;
+            if (!customListKeys.has(selectVal)) return;
+            if (!confirm('"' + selectVal + '" listesini silmek istediğinizden emin misiniz?')) return;
+
+            // symbolLists ve customListKeys'ten kaldır
+            delete symbolLists[selectVal];
+            customListKeys.delete(selectVal);
+
+            // Select'ten kaldır
+            const sel = document.getElementById('listSelect');
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === selectVal) { sel.remove(i); break; }
+            }
+
+            // localStorage güncelle
+            saveCustomLists();
+
+            // Tüm Hisseler listesine geç
+            sel.value = 'Tüm Hisseler';
+            activeList = symbolLists['Tüm Hisseler'];
+            currentSymbol = activeList[0];
+            inp.value = currentSymbol;
+            loadData();
+            schedulePrefetch(0);
+            updateSymbolIndex();
+            updateDeleteListBtn();
+        }
+
+        function move(dir) {
+            let idx = activeList.indexOf(currentSymbol);
+            if(idx === -1) idx = 0;
+            idx = (idx + dir + activeList.length) % activeList.length;
+            currentSymbol = activeList[idx];
+            inp.value = currentSymbol;
+            loadData();
+            schedulePrefetch(idx);
+            updateSymbolIndex();
+        }
+
+        function schedulePrefetch(currentIdx) {
+            clearTimeout(window._prefetchTimer);
+            window._prefetchTimer = setTimeout(() => {
+                const priority = [1, 2];
+                const prioritySymbols = priority
+                    .map(offset => activeList[(currentIdx + offset + activeList.length) % activeList.length])
+                    .filter(Boolean).join(',');
+                if (prioritySymbols) fetch(apiUrl('/prefetch?s=' + prioritySymbols)).catch(() => {});
+                setTimeout(() => {
+                    const secondary = [-1, -2, 3];
+                    const secondarySymbols = secondary
+                        .map(offset => activeList[(currentIdx + offset + activeList.length) % activeList.length])
+                        .filter(Boolean).join(',');
+                    if (secondarySymbols) fetch(apiUrl('/prefetch?s=' + secondarySymbols)).catch(() => {});
+                }, 600);
+            }, 300);
+        }
+
+        function saveCustomLists() {
+            try {
+                const customLists = {};
+                customListKeys.forEach(k => {
+                    if (symbolLists[k]) customLists[k] = symbolLists[k];
+                });
+                localStorage.setItem('borsaOzelListeler', JSON.stringify(customLists));
+            } catch(e) { console.warn('localStorage kayıt hatası:', e); }
+        }
+
+        function loadCustomLists() {
+            try {
+                const saved = localStorage.getItem('borsaOzelListeler');
+                if (!saved) return;
+                const customLists = JSON.parse(saved);
+                const sel = document.getElementById('listSelect');
+                Object.keys(customLists).forEach(listName => {
+                    symbolLists[listName] = customLists[listName];
+                    customListKeys.add(listName);
+                    let opt = document.createElement("option");
+                    opt.text = listName + " (" + customLists[listName].length + ")";
+                    opt.value = listName;
+                    sel.add(opt);
+                });
+            } catch(e) { console.warn('localStorage okuma hatası:', e); }
+        }
+
+        // --- YILDIZLI LİSTE ---
+        function loadFavorites() {
+            try {
+                const saved = localStorage.getItem('borsaYildizli');
+                const favs = saved ? JSON.parse(saved) : [];
+                symbolLists['Yıldızlı'] = favs;
+                const sel = document.getElementById('listSelect');
+                for (let i = sel.options.length - 1; i >= 0; i--) {
+                    if (sel.options[i].value === 'Yıldızlı') { sel.remove(i); break; }
+                }
+                const opt = document.createElement('option');
+                opt.text = 'Yıldızlı (' + favs.length + ')';
+                opt.value = 'Yıldızlı';
+                sel.insertBefore(opt, sel.options[0]);
+            } catch(e) { console.warn('Yıldızlı yükleme hatası:', e); }
+
+            try {
+                const saved2 = localStorage.getItem('borsaAlinacak');
+                const alin = saved2 ? JSON.parse(saved2) : [];
+                symbolLists['Alınacak'] = alin;
+                const sel = document.getElementById('listSelect');
+                for (let i = sel.options.length - 1; i >= 0; i--) {
+                    if (sel.options[i].value === 'Alınacak') { sel.remove(i); break; }
+                }
+                const opt2 = document.createElement('option');
+                opt2.text = 'Alınacak (' + alin.length + ')';
+                opt2.value = 'Alınacak';
+                sel.insertBefore(opt2, sel.options[0]);
+            } catch(e) { console.warn('Alınacak yükleme hatası:', e); }
+        }
+
+        function saveFavorites() {
+            try {
+                const favs = symbolLists['Yıldızlı'] || [];
+                localStorage.setItem('borsaYildizli', JSON.stringify(favs));
+                const sel = document.getElementById('listSelect');
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === 'Yıldızlı') {
+                        sel.options[i].text = 'Yıldızlı (' + favs.length + ')';
+                        break;
+                    }
+                }
+            } catch(e) { console.warn('Yıldızlı kayıt hatası:', e); }
+        }
+
+        function saveWatchlist() {
+            try {
+                const alin = symbolLists['Alınacak'] || [];
+                localStorage.setItem('borsaAlinacak', JSON.stringify(alin));
+                const sel = document.getElementById('listSelect');
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === 'Alınacak') {
+                        sel.options[i].text = 'Alınacak (' + alin.length + ')';
+                        break;
+                    }
+                }
+            } catch(e) { console.warn('Alınacak kayıt hatası:', e); }
+        }
+
+        function toggleWatchlist() {
+            const favs = symbolLists['Yıldızlı'] || [];
+            if (!favs.includes(currentSymbol)) return;
+            const alin = symbolLists['Alınacak'] || [];
+            const idx = alin.indexOf(currentSymbol);
+            if (idx === -1) { alin.push(currentSymbol); }
+            else            { alin.splice(idx, 1); }
+            symbolLists['Alınacak'] = alin;
+            saveWatchlist();
+            updateStarUI();
+        }
+
+        function toggleFavorite() {
+            const favs = symbolLists['Yıldızlı'] || [];
+            const idx = favs.indexOf(currentSymbol);
+            if (idx === -1) {
+                favs.push(currentSymbol);
+            } else {
+                favs.splice(idx, 1);
+            }
+            symbolLists['Yıldızlı'] = favs;
+            saveFavorites();
+            updateStarUI();
+        }
+
+        function updateStarUI() {
+            const favs = symbolLists['Yıldızlı'] || [];
+            const alin = symbolLists['Alınacak'] || [];
+            const btn  = document.getElementById('starBtn');
+            const rBtn = document.getElementById('redStarBtn');
+            if (!btn) return;
+
+            const isStarred = favs.includes(currentSymbol);
+            if (isStarred) {
+                btn.textContent = '★';
+                btn.classList.add('starred');
+            } else {
+                btn.textContent = '☆';
+                btn.classList.remove('starred');
+                const ri = alin.indexOf(currentSymbol);
+                if (ri !== -1) { alin.splice(ri, 1); symbolLists['Alınacak'] = alin; saveWatchlist(); }
+            }
+
+            if (rBtn) {
+                if (isStarred) {
+                    rBtn.style.display = 'flex';
+                    if (alin.includes(currentSymbol)) {
+                        rBtn.textContent = '★';
+                        rBtn.classList.add('red-starred');
+                    } else {
+                        rBtn.textContent = '☆';
+                        rBtn.classList.remove('red-starred');
+                    }
+                } else {
+                    rBtn.style.display = 'none';
+                    rBtn.classList.remove('red-starred');
+                }
+            }
+        }
+
+        function updateSymbolIndex() {
+            const idx = activeList.indexOf(currentSymbol);
+            document.getElementById('symbolIdx').textContent = idx === -1 ? '0' : (idx + 1);
+        }
+
+        // --- HİSSE LİSTESİ DROPDOWN ---
+        function toggleStockListDropdown(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('stockListDropdown');
+            const isOpen = dd.classList.contains('open');
+            document.getElementById('suggestions').style.display = 'none';
+            if (isOpen) { dd.classList.remove('open'); return; }
+            buildStockListDropdown();
+            dd.classList.add('open');
+        }
+
+        function buildStockListDropdown() {
+            const dd = document.getElementById('stockListDropdown');
+            const header = document.getElementById('stockListHeader');
+            const listName = document.getElementById('listSelect').value || 'Liste';
+            header.textContent = listName.toUpperCase() + ' \u2014 ' + activeList.length + ' H\u0130SSE';
+            while (dd.children.length > 1) dd.removeChild(dd.lastChild);
+            activeList.forEach((sym, i) => {
+                const item = document.createElement('div');
+                item.className = 'stock-list-item' + (sym === currentSymbol ? ' current' : '');
+                item.innerHTML = '<span class="item-idx">' + (i + 1) + '</span>' + sym;
+                item.onclick = () => {
+                    currentSymbol = sym;
+                    inp.value = sym;
+                    dd.classList.remove('open');
+                    loadData();
+                    schedulePrefetch(i);
+                    updateSymbolIndex();
+                };
+                dd.appendChild(item);
+            });
+            setTimeout(() => {
+                const cur = dd.querySelector('.current');
+                if (cur) cur.scrollIntoView({ block: 'center' });
+            }, 30);
+        }
+
+        document.addEventListener('click', (e) => {
+            const dd = document.getElementById('stockListDropdown');
+            if (dd && !dd.contains(e.target) && e.target.id !== 'listIconBtn') {
+                dd.classList.remove('open');
+            }
+        });
+
+        function createCustomList() {
+            let raw = prompt("Hisse kodlarını virgülle ayırarak giriniz:\\n(Örnek: THYAO, GARAN, ASELS)");
+            if (!raw) return;
+            let clean = raw.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
+            if (clean.length === 0) return;
+            
+            let defaultName = "Özel Liste " + (customListKeys.size + 1);
+            let listName = prompt("Liste adını giriniz:", defaultName);
+            if (listName === null) return;
+            listName = listName.trim() || defaultName;
+            
+            // Aynı isimde liste varsa numara ekle
+            if (symbolLists[listName] !== undefined) {
+                let i = 2;
+                while (symbolLists[listName + " (" + i + ")"] !== undefined) i++;
+                listName = listName + " (" + i + ")";
+            }
+            
+            symbolLists[listName] = clean;
+            customListKeys.add(listName);
+            
+            let sel = document.getElementById('listSelect');
+            let opt = document.createElement("option");
+            opt.text = listName + " (" + clean.length + ")";
+            opt.value = listName;
+            sel.add(opt);
+            
+            sel.value = listName;
+            saveCustomLists();
+            changeList();
+        }
+
+        // --- ARAÇLAR ---
+        // Ölçüm modu: çizgi üzerindeyken sürükle = ölçüm, boşlukta = pan
+        let _measureHovering = false;
+        let _measureDragging = false;
+        let _measureStartX = null, _measureStartY = null;
+        let _measureStartDataX = null, _measureStartDataY = null;
+        let _measureOverlay = null;
+
+        function toggleMeasure() {
+            isMeasureMode = !isMeasureMode;
+            const btn = document.getElementById('measureBtn');
+            const chartDiv = document.getElementById('chart');
+            if (isMeasureMode) {
+                btn.classList.add('measure-active');
+                Plotly.relayout(chartDiv, { 'dragmode': 'pan' });
+                _attachMeasureListeners(chartDiv);
+            } else {
+                btn.classList.remove('measure-active');
+                clearAllShapes();
+                _detachMeasureListeners(chartDiv);
+            }
+        }
+
+        function clearAllShapes() {
+            const chartDiv = document.getElementById('chart');
+            Plotly.relayout(chartDiv, { 'dragmode': 'pan', 'shapes': [] });
+            document.querySelectorAll('.shape-close-btn').forEach(b => b.remove());
+            if (_measureOverlay) { _measureOverlay.remove(); _measureOverlay = null; }
+        }
+
+        function _pixelToData(chartDiv, px, py) {
+            const l = chartDiv.layout;
+            if (!l || !l.xaxis || !l.yaxis) return null;
+            const xRange = l.xaxis.range;
+            const yRange = l.yaxis.range;
+            if (!xRange || !yRange) return null;
+            const margin = { l: l.margin.l || 40, r: l.margin.r || 10, t: l.margin.t || 30, b: l.margin.b || 20 };
+            const rect = chartDiv.getBoundingClientRect();
+            const plotW = rect.width  - margin.l - margin.r;
+            const plotH = rect.height - margin.t - margin.b;
+            const ratioX = (px - margin.l) / plotW;
+            const ratioY = 1 - (py - margin.t) / plotH;
+            const x0ms = new Date(xRange[0]).getTime();
+            const x1ms = new Date(xRange[1]).getTime();
+            const dataX = new Date(x0ms + ratioX * (x1ms - x0ms)).toISOString();
+            const dataY = parseFloat(yRange[0]) + ratioY * (parseFloat(yRange[1]) - parseFloat(yRange[0]));
+            return { x: dataX, y: dataY };
+        }
+
+        function _measureMouseDown(e) {
+            if (!isMeasureMode || !_measureHovering) return;
+            e.preventDefault();
+            e.stopPropagation();
+            _measureDragging = true;
+            const chartDiv = document.getElementById('chart');
+            const rect = chartDiv.getBoundingClientRect();
+            _measureStartX = e.clientX - rect.left;
+            _measureStartY = e.clientY - rect.top;
+            const d = _pixelToData(chartDiv, _measureStartX, _measureStartY);
+            if (d) { _measureStartDataX = d.x; _measureStartDataY = d.y; }
+            let svg = chartDiv.querySelector('svg.main-svg');
+            if (!svg) svg = chartDiv.querySelector('svg');
+            if (svg && !_measureOverlay) {
+                _measureOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                _measureOverlay.setAttribute('fill', 'rgba(93,92,222,0.2)');
+                _measureOverlay.setAttribute('stroke', '#5D5CDE');
+                _measureOverlay.setAttribute('stroke-width', '1');
+                _measureOverlay.style.pointerEvents = 'none';
+                svg.appendChild(_measureOverlay);
+            }
+        }
+
+        function _measureMouseMove(e) {
+            if (!isMeasureMode || !_measureDragging || !_measureOverlay) return;
+            const chartDiv = document.getElementById('chart');
+            const rect = chartDiv.getBoundingClientRect();
+            const curX = e.clientX - rect.left;
+            const curY = e.clientY - rect.top;
+            const x = Math.min(_measureStartX, curX);
+            const y = Math.min(_measureStartY, curY);
+            const w = Math.abs(curX - _measureStartX);
+            const h = Math.abs(curY - _measureStartY);
+            _measureOverlay.setAttribute('x', x);
+            _measureOverlay.setAttribute('y', y);
+            _measureOverlay.setAttribute('width', w);
+            _measureOverlay.setAttribute('height', h);
+        }
+
+        function _measureMouseUp(e) {
+            if (!isMeasureMode || !_measureDragging) return;
+            _measureDragging = false;
+            if (_measureOverlay) { _measureOverlay.remove(); _measureOverlay = null; }
+            const chartDiv = document.getElementById('chart');
+            const rect = chartDiv.getBoundingClientRect();
+            const endX = e.clientX - rect.left;
+            const endY = e.clientY - rect.top;
+            const dEnd = _pixelToData(chartDiv, endX, endY);
+            if (!dEnd || !_measureStartDataX || !_measureStartDataY) return;
+            if (Math.abs(endX - _measureStartX) < 5 && Math.abs(endY - _measureStartY) < 5) return;
+
+            const x0 = _measureStartDataX < dEnd.x ? _measureStartDataX : dEnd.x;
+            const x1 = _measureStartDataX < dEnd.x ? dEnd.x : _measureStartDataX;
+            const y0 = Math.min(_measureStartDataY, dEnd.y);
+            const y1 = Math.max(_measureStartDataY, dEnd.y);
+
+            const pct = ((y1 - y0) / y0) * 100;
+            const days = Math.abs(Math.round((new Date(x1) - new Date(x0)) / 86400000));
+            const colorFill = pct >= 0 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
+
+            const existingShapes = (chartDiv.layout.shapes || []).slice();
+            const newShape = {
+                type: 'rect', x0, x1, y0, y1,
+                fillcolor: colorFill,
+                line: { width: 0 },
+                label: { text: `<b>%${pct.toFixed(2)}</b><br>${days}G`, font: { size: 12, color: '#fff' } }
+            };
+            Plotly.relayout(chartDiv, { shapes: [...existingShapes, newShape] }).then(() => {
+                renderShapeCloseBtn(existingShapes.length);
+            });
+        }
+
+        let _mDown = null, _mMove = null, _mUp = null;
+        function _attachMeasureListeners(chartDiv) {
+            _mDown = _measureMouseDown;
+            _mMove = _measureMouseMove;
+            _mUp   = _measureMouseUp;
+            chartDiv.addEventListener('mousedown', _mDown, true);
+            window.addEventListener('mousemove', _mMove);
+            window.addEventListener('mouseup', _mUp);
+            chartDiv.on('plotly_hover',  () => { _measureHovering = true;  chartDiv.style.cursor = 'crosshair'; });
+            chartDiv.on('plotly_unhover',() => { _measureHovering = false; chartDiv.style.cursor = ''; });
+        }
+        function _detachMeasureListeners(chartDiv) {
+            if (_mDown) chartDiv.removeEventListener('mousedown', _mDown, true);
+            if (_mMove) window.removeEventListener('mousemove', _mMove);
+            if (_mUp)   window.removeEventListener('mouseup',   _mUp);
+            chartDiv.style.cursor = '';
+            _measureHovering = false;
+            _measureDragging = false;
+        }
+
+        function removeShapeAt(idx) {
+            const chartDiv = document.getElementById('chart');
+            const shapes = (chartDiv.layout.shapes || []).slice();
+            shapes.splice(idx, 1);
+            Plotly.relayout(chartDiv, { shapes });
+            document.querySelectorAll('.shape-close-btn').forEach(b => b.remove());
+            shapes.forEach((_, i) => renderShapeCloseBtn(i));
+        }
+
+        function renderShapeCloseBtn(shapeIdx) {
+            const chartDiv = document.getElementById('chart');
+            const layout = chartDiv.layout;
+            const shapes = layout.shapes || [];
+            if (shapeIdx >= shapes.length) return;
+            const shape = shapes[shapeIdx];
+
+            const rect = chartDiv.getBoundingClientRect();
+            const ml = layout.margin.l || 40, mr = layout.margin.r || 10;
+            const mt = layout.margin.t || 30, mb = layout.margin.b || 20;
+            const plotW = rect.width  - ml - mr;
+            const plotH = rect.height - mt - mb;
+
+            const xRange = layout.xaxis.range;
+            const yRange = layout.yaxis.range;
+            const x0ms = new Date(xRange[0]).getTime();
+            const x1ms = new Date(xRange[1]).getTime();
+            const y0v  = parseFloat(yRange[0]);
+            const y1v  = parseFloat(yRange[1]);
+
+            const shapeX1ms = Math.max(new Date(shape.x0).getTime(), new Date(shape.x1).getTime());
+            const shapeYtop = Math.max(parseFloat(shape.y0), parseFloat(shape.y1));
+
+            const rightX = ml + ((shapeX1ms - x0ms) / (x1ms - x0ms)) * plotW;
+            const topY   = mt + ((y1v - shapeYtop) / (y1v - y0v)) * plotH;
+
+            if (rightX < ml || rightX > rect.width - mr || topY < mt || topY > rect.height - mb) return;
+
+            const btn = document.createElement('button');
+            btn.className = 'shape-close-btn';
+            btn.dataset.shapeIdx = shapeIdx;
+            btn.textContent = '\u00d7';
+            btn.style.cssText = 'position:absolute;left:' + (rightX - 9) + 'px;top:' + (topY - 9) + 'px;width:20px;height:20px;background:rgba(20,20,20,0.9);border:1px solid #888;border-radius:50%;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:200;padding:0;touch-action:manipulation;font-weight:bold;';
+            const doRemove = (e) => { e.preventDefault(); e.stopPropagation(); removeShapeAt(parseInt(btn.dataset.shapeIdx)); };
+            btn.addEventListener('click', doRemove);
+            btn.addEventListener('touchend', doRemove, { passive: false });
+
+            document.getElementById('chartArea').appendChild(btn);
+        }
+
+        function refreshShapeCloseBtns() {
+            document.querySelectorAll('.shape-close-btn').forEach(b => b.remove());
+            const chartDiv = document.getElementById('chart');
+            const shapes = (chartDiv.layout && chartDiv.layout.shapes) || [];
+            shapes.forEach((_, i) => renderShapeCloseBtn(i));
+        }
+
+        function captureChartAndDownload() {
+            const targetElement = document.getElementById('mainCaptureArea');
+            if (!rawData) { alert("Veri yüklenmedi."); return; }
+            
+            const now = new Date();
+            const dateStr = now.getFullYear() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0');
+            const filename = `${currentSymbol}_${dateStr}_${activeTimeRange}`;
+
+            html2canvas(targetElement, { backgroundColor: '#000', scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = filename + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // --- T-VIEW MODAL ---
+        function formatTVNum(val, key) {
+            if (val === null || val === undefined) return '--';
+            if (key === 'Son Fiyat' || key === 'SMA 50' || key === 'SMA 200') {
+                return val.toFixed(2) + ' ₺';
+            }
+            if (key === 'Piyasa Değeri' || key === 'Toplam Gelir' || key === 'Net Kar' ||
+                key === 'FAVÖK' || key === 'Net Borç' || key === 'Hacim' || key === '10G Ort. Hacim') {
+                const abs = Math.abs(val);
+                const sign = val < 0 ? '-' : '';
+                if (abs >= 1e12) return sign + (abs/1e12).toFixed(2) + ' T';
+                if (abs >= 1e9)  return sign + (abs/1e9).toFixed(2) + ' Mr';
+                if (abs >= 1e6)  return sign + (abs/1e6).toFixed(2) + ' Mn';
+                if (abs >= 1e3)  return sign + (abs/1e3).toFixed(2) + ' B';
+                return val.toFixed(2);
+            }
+            if (key.includes('%') || key === 'Değişim %') {
+                const prefix = val > 0 ? '+' : '';
+                return prefix + val.toFixed(2) + '%';
+            }
+            if (typeof val === 'number') return val.toFixed(2);
+            return val;
+        }
+
+        function getTVColor(val, key) {
+            const colorKeys = ['Değişim %','Net Kar','Haftalık %','Aylık %','3 Aylık %','YTD %','Yıllık %',
+                               'Brüt Kar Marjı %','Faaliyet Kar Marjı %','Net Kar Marjı %',
+                               'Özkaynak Karlılığı %','Teknik Puan'];
+            if (colorKeys.includes(key) && typeof val === 'number') {
+                return val > 0 ? 'tv-pos' : (val < 0 ? 'tv-neg' : '');
+            }
+            return '';
+        }
+
+        function renderTVModal(data) {
+            const sections = [
+                {
+                    title: '💰 Fiyat & Performans',
+                    keys: ['Son Fiyat','Değişim %','Haftalık %','Aylık %','3 Aylık %','YTD %','Yıllık %']
+                },
+                {
+                    title: '📊 Değerleme',
+                    keys: ['Piyasa Değeri','F/K','PD/DD','FD/Satışlar','FD/FAVÖK','Temettü Verimi %']
+                },
+                {
+                    title: '💹 Karlılık',
+                    keys: ['Brüt Kar Marjı %','Faaliyet Kar Marjı %','Net Kar Marjı %','Özkaynak Karlılığı %']
+                },
+                {
+                    title: '🏦 Finansal',
+                    keys: ['Toplam Gelir','Net Kar','FAVÖK','Net Borç','Cari Oran','Hacim','10G Ort. Hacim']
+                },
+                {
+                    title: '📈 Teknik',
+                    keys: ['RSI (14)','SMA 50','SMA 200','Beta (1Y)','Teknik Puan','Tavsiye']
+                }
+            ];
+
+            let html = '';
+            sections.forEach(sec => {
+                html += `<div class="tv-section">`;
+                html += `<div class="tv-section-title">${sec.title}</div>`;
+                html += `<div class="tv-grid">`;
+                sec.keys.forEach(key => {
+                    const val = data[key];
+                    const valStr = (key === 'Tavsiye') ? (val || 'N/A') : formatTVNum(val, key);
+                    const colorCls = getTVColor(val, key);
+                    html += `<div class="tv-item">
+                        <span class="tv-item-key">${key}</span>
+                        <span class="tv-item-val ${colorCls}">${valStr}</span>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            });
+
+            document.getElementById('tvModalBody').innerHTML = html;
+        }
+
+        async function openTVModal() {
+            document.getElementById('tvModalTitle').textContent = `📊 ${currentSymbol} — TradingView`;
+            document.getElementById('tvModalBody').innerHTML = '<div class="tv-loader">⏳ Veriler yükleniyor...</div>';
+            document.getElementById('tvModal').classList.add('active');
+
+            if (tvRawData && !tvRawData.error && tvRawData['Kod'] === currentSymbol) {
+                renderTVModal(tvRawData);
+                return;
+            }
+
+            try {
+                const res = await fetch(apiUrl(`/tvdata?s=${currentSymbol}`));
+                tvRawData = await res.json();
+                if (tvRawData.error) {
+                    document.getElementById('tvModalBody').innerHTML =
+                        `<div class="tv-loader" style="color:#EF4444;">⚠️ Hata: ${tvRawData.error}</div>`;
+                    return;
+                }
+                renderTVModal(tvRawData);
+            } catch(e) {
+                document.getElementById('tvModalBody').innerHTML =
+                    `<div class="tv-loader" style="color:#EF4444;">⚠️ Bağlantı hatası</div>`;
+            }
+        }
+
+        function closeTVModal() {
+            document.getElementById('tvModal').classList.remove('active');
+        }
+
+        // --- AI ANALİZ MODAL ---
+        let aiCache = {};
+
+        async function openAIModal(e) {
+            if (e) e.preventDefault();
+            const modal = document.getElementById('aiModal');
+            const body  = document.getElementById('aiModalBody');
+            document.getElementById('aiModalTitle').textContent = `🤖 ${currentSymbol} — AI Analizi`;
+            modal.classList.add('active');
+
+            if (aiCache[currentSymbol]) {
+                renderAIAnalysis(aiCache[currentSymbol].text, aiCache[currentSymbol].company, aiCache[currentSymbol].model);
+                return;
+            }
+
+            body.innerHTML = '<div class="ai-loader">⏳ Veriler toplanıyor ve analiz ediliyor...<br><small style="color:#666;margin-top:8px;display:block">Bu işlem ~10-20 saniye sürebilir</small></div>';
+
+            try {
+                const res = await fetch(apiUrl(`/ai_analyze?s=${currentSymbol}`));
+                const rawText = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch(_) {
+                    const snippet = rawText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+                    body.innerHTML = `<div class="ai-error">⚠️ Sunucu hatası (HTTP ${res.status})<br><small style="color:#666">${snippet}</small></div>`;
+                    return;
+                }
+                if (data.error) {
+                    body.innerHTML = `<div class="ai-error">⚠️ Hata: ${data.error}</div>`;
+                    return;
+                }
+                aiCache[currentSymbol] = { text: data.analysis, company: data.company, model: data.model || '' };
+                renderAIAnalysis(data.analysis, data.company, data.model || '');
+            } catch(err) {
+                body.innerHTML = `<div class="ai-error">⚠️ Bağlantı hatası: ${err.message}</div>`;
+            }
+        }
+
+        function renderAIAnalysis(text, company, model) {
+            const body = document.getElementById('aiModalBody');
+
+            function formatMarkdown(s) {
+                s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                s = s.replace(/__(.+?)__/g, '<strong>$1</strong>');
+                s = s.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+                s = s.replace(/([\+\-]?[\d,.]+\s*(?:%|₺|TL|M\b|Mr\b|Mn\b|Milyar\b|Milyon\b|x\b))/g,
+                    '<span class="ai-num-highlight">$1</span>');
+                s = s.replace(/\bAL\b/g, '<span class="ai-verdict-al">AL</span>');
+                s = s.replace(/\bSAT\b/g, '<span class="ai-verdict-sat">SAT</span>');
+                s = s.replace(/\bBEKLE\b/g, '<span class="ai-verdict-bekle">BEKLE</span>');
+                return s;
+            }
+
+            function sentimentClass(s) {
+                if (/artış|yüksel|güçlü|pozitif|büyüme|rekor|al\b|kar\b|fırsat/i.test(s)) return 'positive';
+                if (/düşüş|zayıf|negatif|risk|kayıp|sat\b|borç|endişe/i.test(s))           return 'negative';
+                return '';
+            }
+
+            const lines = text.split('\n').map(l => l.trim());
+
+            const sections = [];
+            let current = null;
+            for (const line of lines) {
+                if (!line) continue;
+                if (/^#{1,3}\s/.test(line)) {
+                    const heading = line.replace(/^#{1,3}\s*/, '');
+                    if (current) {
+                        current.rows.push({ type: 'heading', text: heading });
+                    } else {
+                        sections.push({ title: null, rows: [{ type: 'heading', text: heading }] });
+                    }
+                    continue;
+                }
+                if (/^\d+\./.test(line) || /^[📊💰📈⚠️🎯🏢✅💵🏦📉🔎💡📰]/.test(line)) {
+                    if (current) sections.push(current);
+                    current = { title: line, rows: [] };
+                } else if (current) {
+                    const clean = line.replace(/^[-•*\d+\.\s]+/, '').trim();
+                    if (clean) current.rows.push({ type: 'bullet', text: clean });
+                } else {
+                    sections.push({ title: null, rows: [{ type: 'bullet', text: line }] });
+                }
+            }
+            if (current) sections.push(current);
+
+            let html = '';
+            if (model) html += `<div class="ai-model-badge">🤖 ${model}</div>`;
+
+            for (const sec of sections) {
+                if (sec.rows.length === 0 && !sec.title) continue;
+                html += `<div class="ai-card">`;
+                if (sec.title) {
+                    html += `<div class="ai-card-header">
+                        <div class="ai-card-header-text">${formatMarkdown(sec.title)}</div>
+                    </div>`;
+                }
+                if (sec.rows.length > 0) {
+                    html += `<div class="ai-card-body">`;
+                    for (const row of sec.rows) {
+                        if (row.type === 'heading') {
+                            html += `<span class="ai-sub-heading">${formatMarkdown(row.text)}</span>`;
+                        } else {
+                            const sc = sentimentClass(row.text);
+                            html += `<div class="ai-row">
+                                <div class="ai-row-bullet"></div>
+                                <div class="ai-row-text ${sc}">${formatMarkdown(row.text)}</div>
+                            </div>`;
+                        }
+                    }
+                    html += `</div>`;
+                }
+                html += `</div>`;
+            }
+
+            html += `<div class="ai-disclaimer">⚠️ Bu analiz yapay zeka tarafından mevcut veriler kullanılarak otomatik üretilmiştir. Yatırım tavsiyesi değildir. Yatırım kararlarınızı kendi araştırmanıza ve finansal danışmanınıza dayandırınız.</div>`;
+            body.innerHTML = html;
+        }
+
+        function closeAIModal() {
+            document.getElementById('aiModal').classList.remove('active');
+        }
+
+        // --- HABER ANALİZİ MODAL ---
+        let newsCache = {};
+
+        async function openNewsModal(e) {
+            if (e) e.preventDefault();
+            const modal = document.getElementById('newsModal');
+            const body  = document.getElementById('newsModalBody');
+            document.getElementById('newsModalTitle').textContent = `📰 ${currentSymbol} — Haber Analizi`;
+            modal.classList.add('active');
+
+            if (newsCache[currentSymbol]) {
+                body.innerHTML = newsCache[currentSymbol];
+                return;
+            }
+
+            body.innerHTML = '<div class="ai-loader">⏳ Web, X, TradingView, Midas ve Investing.com taranıyor...<br><small style="color:#666;margin-top:8px;display:block">Gemini yorumluyor (~15-25 sn)</small></div>';
+
+            try {
+                const res = await fetch(apiUrl(`/news_analyze?s=${currentSymbol}`));
+                const data = await res.json();
+                if (data.error) {
+                    body.innerHTML = `<div class="ai-error">⚠️ Hata: ${data.error}</div>`;
+                    return;
+                }
+                let html = '';
+                if (data.model) html += `<div class="ai-model-badge">📰 Haberler (7 gün) · 🌐𝕏📈🟠💜 · 🤖 ${data.model} · ${data.news_count} içerik</div>`;
+
+                const lines = data.analysis.split('\n').map(l => l.trim()).filter(Boolean);
+                const sections = [];
+                let current = null;
+                for (const line of lines) {
+                    if (/^[📰🔎⚠️•✅❌📊💡📈🏦💰🎯]/.test(line) || /^#+\s/.test(line)) {
+                        if (current) sections.push(current);
+                        current = { title: line.replace(/^#+\s*/, ''), rows: [] };
+                    } else if (current) {
+                        const clean = line.replace(/^[-•*]\s*/, '').trim();
+                        if (clean) current.rows.push(clean);
+                    } else {
+                        sections.push({ title: null, rows: [line] });
+                    }
+                }
+                if (current) sections.push(current);
+
+                function fmtNews(s) {
+                    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    s = s.replace(/__(.+?)__/g, '<strong>$1</strong>');
+                    s = s.replace(/([\+\-]?[\d,.]+\s*(?:%|₺|TL|M\b|Mr\b|Mn\b|Milyar\b|Milyon\b|x\b))/g,
+                        '<span class="ai-num-highlight">$1</span>');
+                    s = s.replace(/\bAL\b/g, '<span class="ai-verdict-al">AL</span>');
+                    s = s.replace(/\bSAT\b/g, '<span class="ai-verdict-sat">SAT</span>');
+                    s = s.replace(/\bBEKLE\b/g, '<span class="ai-verdict-bekle">BEKLE</span>');
+                    return s;
+                }
+
+                for (const sec of sections) {
+                    html += `<div class="ai-card">`;
+                    if (sec.title) html += `<div class="ai-card-header"><div class="ai-card-header-text">${fmtNews(sec.title)}</div></div>`;
+                    if (sec.rows.length > 0) {
+                        html += `<div class="ai-card-body">`;
+                        for (const row of sec.rows) {
+                            html += `<div class="ai-row"><div class="ai-row-bullet"></div><div class="ai-row-text">${fmtNews(row)}</div></div>`;
+                        }
+                        html += `</div>`;
+                    }
+                    html += `</div>`;
+                }
+
+                if (data.sources && data.sources.length > 0) {
+                    function sourceBadge(src) {
+                        const s = (src || '').toLowerCase();
+                        if (s === 'x')           return `<span class="news-source-badge badge-x">𝕏 Twitter</span>`;
+                        if (s === 'tradingview') return `<span class="news-source-badge badge-tradingview">📈 TradingView</span>`;
+                        if (s === 'midas')       return `<span class="news-source-badge badge-midas">🟠 Midas</span>`;
+                        if (s === 'investing')   return `<span class="news-source-badge badge-investing">💜 Investing</span>`;
+                        return `<span class="news-source-badge badge-web">🌐 Web</span>`;
+                    }
+                    html += `<div class="news-source-list">`;
+                    html += `<div class="ai-card-header"><div class="ai-card-header-text">🔗 Kaynaklar — ${data.news_count} içerik tarandı</div></div>`;
+                    for (const src of data.sources) {
+                        html += `<div class="news-source-item">
+                            <div class="news-source-meta">
+                                ${sourceBadge(src.source)}
+                                <span class="news-source-date">🕐 ${src.date || 'tarih yok'}</span>
+                            </div>
+                            <a href="${src.url}" target="_blank">${src.title || src.url}</a>
+                        </div>`;
+                    }
+                    html += `</div>`;
+                }
+
+                html += `<div class="ai-disclaimer">⚠️ Bu haber özeti otomatik derlenen haberlerden Gemini tarafından üretilmiştir. Yatırım tavsiyesi değildir.</div>`;
+                newsCache[currentSymbol] = html;
+                body.innerHTML = html;
+            } catch(err) {
+                body.innerHTML = `<div class="ai-error">⚠️ Bağlantı hatası: ${err.message}</div>`;
+            }
+        }
+
+        function closeNewsModal() {
+            document.getElementById('newsModal').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeTVModal(); closeAIModal(); closeNewsModal(); }
+        });
+
+        // --- DOLAR BAZLI GRAFİK ---
+        let isUsdMode = false;
+        let usdRawData = null;
+
+        async function toggleUsdMode() {
+            isUsdMode = !isUsdMode;
+            const btn = document.getElementById('usdModeBtn');
+            const ldr = document.getElementById('usdLoader');
+
+            if (isUsdMode) {
+                btn.classList.add('usd-active');
+                if (!usdRawData || usdRawData._symbol !== currentSymbol) {
+                    ldr.style.display = 'block';
+                    try {
+                        const rangeInfo = timeRangeMap[activeTimeRange];
+                        const usdYears = (rangeInfo && rangeInfo.unit === 'years') ? rangeInfo.value : 10;
+                        const res = await fetch(apiUrl(`/analyze_usd?s=${currentSymbol}&years=${usdYears}`));
+                        const data = await res.json();
+                        if (data.error) {
+                            alert('Dolar bazlı veri bulunamadı: ' + data.error);
+                            isUsdMode = false;
+                            btn.classList.remove('usd-active');
+                            return;
+                        }
+                        usdRawData = data;
+                        usdRawData._symbol = currentSymbol;
+                        usdRawData._loadedYears = usdYears;
+                    } catch(e) {
+                        alert('Dolar verisi çekilemedi.');
+                        isUsdMode = false;
+                        btn.classList.remove('usd-active');
+                        return;
+                    } finally {
+                        ldr.style.display = 'none';
+                    }
+                }
+                drawUsdChart();
+            } else {
+                btn.classList.remove('usd-active');
+                if (rawData) {
+                    drawChartBase();
+                    changeTimeRange(activeTimeRange, false);
+                    if (isMeasureMode) {
+                        setTimeout(() => {
+                            _attachMeasureListeners(document.getElementById('chart'));
+                        }, 50);
+                    }
+                }
+            }
+        }
+
+        function drawUsdChart() {
+            if (!usdRawData) return;
+            const chartDiv = document.getElementById('chart');
+            const dates  = usdRawData.chart.dates;
+            const prices = usdRawData.chart.prices;
+            const ma50   = usdRawData.chart.ma50;
+            const ma200  = usdRawData.chart.ma200;
+            const last   = usdRawData.chart.last_price;
+
+            const usdCustomDates = dates.map(d => { const dt = new Date(d); const dd = String(dt.getDate()).padStart(2,'0'); const mm = String(dt.getMonth()+1).padStart(2,'0'); const yyyy = dt.getFullYear(); return `${dd}.${mm}.${yyyy}`; });
+            const traceP   = { x: dates, y: prices, customdata: usdCustomDates, type: 'scatter', mode: 'lines', name: 'Fiyat ($)', line: {color: '#10B981', width: 1.2}, hovertemplate: '<b>$%{y:.4f}</b><br>%{customdata}<extra></extra>' };
+            const trace50  = { x: dates, y: ma50,   type: 'scatter', mode: 'lines', name: 'MA50',      line: {color: '#f97316', width: 1.0, dash: 'dot'}, hoverinfo:'skip' };
+            const trace200 = { x: dates, y: ma200,  type: 'scatter', mode: 'lines', name: 'MA200',     line: {color: '#3B82F6', width: 1.0, dash: 'dot'}, hoverinfo:'skip' };
+
+            const titleHTML = `<b>${currentSymbol}</b>  $${last.toFixed(4)}`;
+            const layout = {
+                paper_bgcolor: '#000', plot_bgcolor: '#000',
+                margin: { l: 50, r: 10, t: 30, b: 20 },
+                xaxis: { type: 'date', gridcolor: '#222', tickfont: {color: '#888', size: 10}, fixedrange: false, showspikes: true, spikemode: 'across', spikecolor: '#888', spikethickness: 1, spikedash: 'dot' },
+                yaxis: { gridcolor: '#222', side: 'left', tickfont: {color: '#888', size: 10}, fixedrange: false, tickformat: '.4f' },
+                showlegend: false, hovermode: 'closest',
+                dragmode: 'pan',
+                title: { text: titleHTML, x: 0.5, y: 0.97, font: {size: 13, color: '#10B981'} },
+                hoverlabel: { bgcolor: '#0a2a1a', bordercolor: '#10B981', font: { color: '#ffffff', size: 13 }, align: 'left' }
+            };
+
+            document.querySelectorAll('.shape-close-btn').forEach(b => b.remove());
+            Plotly.newPlot(chartDiv, [traceP, trace50, trace200], layout, {responsive: true, displayModeBar: false, scrollZoom: false}).then(() => {
+                applyUsdTimeRange(activeTimeRange, dates);
+
+                chartDiv.on('plotly_relayout', function(eventData) {
+                    if (eventData['xaxis.range[0]'] || eventData['xaxis.range'] ||
+                        eventData['yaxis.range[0]'] || eventData['yaxis.range']) {
+                        refreshShapeCloseBtns();
+                    }
+                });
+
+                chartDiv.on('plotly_click', function(data) {
+                    if (!document.getElementById('clickPriceMode').checked) return;
+                    if (!data || !data.points || !data.points[0]) return;
+                    const pt = data.points[0];
+                    const clickedPrice = pt.y;
+                    const clickedDate = new Date(pt.x);
+                    if (!usdRawData) return;
+                    const dates = usdRawData.chart.dates;
+                    const prices = usdRawData.chart.prices;
+                    const f4 = n => n.toFixed(4);
+                    const f2 = n => n.toFixed(2);
+                    const dd = String(clickedDate.getDate()).padStart(2,'0');
+                    const mm = String(clickedDate.getMonth()+1).padStart(2,'0');
+                    const yyyy = clickedDate.getFullYear();
+                    const dateStr = `${dd}.${mm}.${yyyy}`;
+                    const tr = timeRangeMap[activeTimeRange];
+                    let targetIndex = 0;
+                    if (tr) {
+                        const endDate = new Date(dates[dates.length - 1]);
+                        let targetDate = new Date(endDate);
+                        if (tr.unit === 'months') targetDate.setMonth(endDate.getMonth() - tr.value);
+                        else if (tr.unit === 'days') targetDate.setDate(endDate.getDate() - tr.value);
+                        else targetDate.setFullYear(endDate.getFullYear() - tr.value);
+                        const targetTime = targetDate.getTime();
+                        for (let i = 0; i < dates.length; i++) {
+                            if (targetTime - new Date(dates[i]).getTime() <= 0) { targetIndex = i; break; }
+                        }
+                    }
+                    const visiblePrices = prices.slice(targetIndex);
+                    let vmax = -Infinity, vmin = Infinity;
+                    for (const p of visiblePrices) { if (p > vmax) vmax = p; if (p < vmin) vmin = p; }
+                    const startPrice = visiblePrices[0];
+                    const diff_peak   = ((clickedPrice - vmax) / vmax) * 100;
+                    const diff_bottom = ((clickedPrice - vmin) / vmin) * 100;
+                    const periodReturn = ((clickedPrice - startPrice) / startPrice) * 100;
+                    const periodColor  = periodReturn >= 0 ? '#10B981' : '#EF4444';
+                    const periodPrefix = periodReturn >= 0 ? '+' : '';
+                    const clickedTitleHTML = `
+<span style="font-size:11px; color:#10B981;">Dip: +%${f2(diff_bottom)}</span> | 
+<span style="font-size:14px; font-weight:bold; color:#10B981;">${currentSymbol}: $${f4(clickedPrice)} <span style="font-size:10px;color:#f59e0b;">(${dateStr})</span></span> | 
+<span style="font-size:11px; color:#EF4444;">Zirve: %${f2(diff_peak)}</span>
+<br><span style="font-size:12px; color:${periodColor};">\u{1F4C5} ${activeTimeRange} Getiri: ${periodPrefix}%${f2(periodReturn)}</span>`;
+                    Plotly.relayout('chart', { title: { text: clickedTitleHTML, x: 0.5, y: 0.95, font: {size: 14} } });
+                });
+            });
+        }
+
+        function applyUsdTimeRange(rangeKey, dates) {
+            if (!dates || dates.length === 0) return;
+            const tr = timeRangeMap[rangeKey];
+            if (!tr) return;
+            const prices = usdRawData.chart.prices;
+            const lastPrice = usdRawData.chart.last_price;
+
+            let targetIndex = 0;
+            let minDate = dates[0];
+            {
+                const endDate = new Date(dates[dates.length - 1]);
+                let targetDate = new Date(endDate);
+                if (tr.unit === 'months') targetDate.setMonth(endDate.getMonth() - tr.value);
+                else if (tr.unit === 'days') targetDate.setDate(endDate.getDate() - tr.value);
+                else targetDate.setFullYear(endDate.getFullYear() - tr.value);
+                const targetTime = targetDate.getTime();
+                for (let i = 0; i < dates.length; i++) {
+                    if (targetTime - new Date(dates[i]).getTime() <= 0) { targetIndex = i; break; }
+                }
+                minDate = dates[targetIndex];
+            }
+
+            const visiblePrices = prices.slice(targetIndex);
+            let new_val_max = -Infinity, new_idx_max_date = '';
+            let new_val_min = Infinity,  new_idx_min_date = '';
+            for (let i = 0; i < visiblePrices.length; i++) {
+                const p = visiblePrices[i];
+                const d = dates[targetIndex + i];
+                if (p > new_val_max) { new_val_max = p; new_idx_max_date = d; }
+                if (p < new_val_min) { new_val_min = p; new_idx_min_date = d; }
+            }
+
+            const padding    = (new_val_max - new_val_min) * 0.05;
+            const diff_peak  = ((lastPrice - new_val_max) / new_val_max) * 100;
+            const diff_bottom = ((lastPrice - new_val_min) / new_val_min) * 100;
+            const startPrice  = visiblePrices[0];
+            const periodReturn = ((lastPrice - startPrice) / startPrice) * 100;
+            const periodColor  = periodReturn >= 0 ? '#10B981' : '#EF4444';
+            const periodPrefix = periodReturn >= 0 ? '+' : '';
+            const f4 = n => n.toFixed(4);
+            const f2 = n => n.toFixed(2);
+
+            const startDateFmt = new Date(dates[targetIndex]).toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'});
+            const startDateObj  = new Date(dates[targetIndex]);
+            const today = new Date();
+            let yil = today.getFullYear() - startDateObj.getFullYear();
+            let ay  = today.getMonth() - startDateObj.getMonth();
+            let gun = today.getDate()  - startDateObj.getDate();
+            if (gun < 0) { ay--; gun += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+            if (ay  < 0) { yil--; ay += 12; }
+            const gecenSure = [yil>0?yil+'y':'', ay>0?ay+'a':'', gun>0?gun+'g':''].filter(Boolean).join(' ') || '0g';
+
+            document.getElementById('cariTitleText').innerHTML =
+                `Cari Değerler <span style="color:#10B981; font-size:10px; font-weight:normal;">$ mod · ${startDateFmt} — $${f4(startPrice)} — ${gecenSure}</span>`;
+
+            const titleHTML = `
+<span style="font-size:11px; color:#10B981;">Dip: +%${f2(diff_bottom)}</span> | 
+<span style="font-size:14px; font-weight:bold; color:#10B981;">${currentSymbol}: $${f4(lastPrice)}</span> | 
+<span style="font-size:11px; color:#EF4444;">Zirve: %${f2(diff_peak)}</span>
+<br><span style="font-size:12px; color:${periodColor};">📅 ${rangeKey} Getiri: ${periodPrefix}%${f2(periodReturn)}</span>`;
+
+            Plotly.relayout('chart', {
+                'xaxis.range': [minDate, dates[dates.length - 1]],
+                'yaxis.range': [new_val_min - padding, new_val_max + padding],
+                title: { text: titleHTML, x: 0.5, y: 0.95, font: {size: 14} },
+                annotations: [
+                    {
+                        x: new_idx_max_date, y: new_val_max,
+                        text: `<br><b>$${f4(new_val_max)}</b>`,
+                        showarrow: true, arrowhead: 2, arrowcolor: '#10B981',
+                        ax: -10, ay: 0, xanchor: 'right',
+                        font: {color: '#10B981', size: 10}
+                    },
+                    {
+                        x: new_idx_min_date, y: new_val_min,
+                        text: `<br><b>$${f4(new_val_min)}</b>`,
+                        showarrow: true, arrowhead: 2, arrowcolor: '#EF4444',
+                        ax: -10, ay: 0, xanchor: 'right',
+                        font: {color: '#EF4444', size: 10}
+                    }
+                ]
+            });
+        }
+
+        // --- VERİ ÇEKME VE ÇİZİM ---
+        function loadRandomSymbol() {
+            const randomSymbol = activeList[Math.floor(Math.random() * activeList.length)];
+            currentSymbol = randomSymbol;
+            document.getElementById('symbol').value = currentSymbol;
+            loadData();
+            updateSymbolIndex();
+        }       
+        
+        // Altın verisini arka planda çek / güncelle
+        let _goldFetching = false;
+        async function fetchGoldData(years) {
+            const needed = years || 10;
+            if (goldData && (goldData.loadedYears || 0) >= needed) return;
+            if (_goldFetching) return;
+            _goldFetching = true;
+            try {
+                const r = await fetch(apiUrl(`/gold?years=${needed}`));
+                const d = await r.json();
+                if (!d.error && d.dates && d.dates.length) {
+                    goldData = { dates: d.dates, prices: d.prices, loadedYears: needed };
+                }
+            } catch(e) { /* sessizce geç */ }
+            finally { _goldFetching = false; }
+        }
+
+        let _usdFetching = false;
+        async function fetchUsdData(years) {
+            const needed = years || 10;
+            if (usdData && (usdData.loadedYears || 0) >= needed) return;
+            if (_usdFetching) return;
+            _usdFetching = true;
+            try {
+                const r = await fetch(apiUrl(`/usdtry?years=${needed}`));
+                const d = await r.json();
+                if (!d.error && d.dates && d.dates.length) {
+                    usdData = { dates: d.dates, prices: d.prices, loadedYears: needed };
+                }
+            } catch(e) { /* sessizce geç */ }
+            finally { _usdFetching = false; }
+        }
+
+        async function loadData(years) {
+            document.getElementById('loader').style.display = 'block';
+            tvRawData = null;
+            isUsdMode = false;
+            usdRawData = null;
+            const usdBtn = document.getElementById('usdModeBtn');
+            if (usdBtn) usdBtn.classList.remove('usd-active');
+            
+            const lDiv = document.getElementById('links');
+            lDiv.innerHTML = externalLinks.map(l => {
+                if (l.url === '__AI__') {
+                    return `<a href="#" onclick="openAIModal(event)" style="color:#a78bfa; border-color:#a78bfa;">${l.name}</a>`;
+                }
+                if (l.url === '__NEWS__') {
+                    return `<a href="#" onclick="openNewsModal(event)" style="color:#34d399; border-color:#34d399;">${l.name}</a>`;
+                }
+                return `<a href="${l.url.replace(/__SYM__/g, currentSymbol)}" target="_blank">${l.name}</a>`;
+            }).join('');
+
+            try {
+                const _years = years || 10;
+                const [analyzeSettled, tvSettled] = await Promise.allSettled([
+                    fetch(apiUrl(`/analyze?s=${currentSymbol}&years=${_years}`)),
+                    fetch(apiUrl(`/tvdata?s=${currentSymbol}`))
+                ]);
+
+                // /analyze başarısız olduysa devam edemeyiz (grafik verisi yok)
+                if (analyzeSettled.status === 'rejected' || !analyzeSettled.value.ok) {
+                    alert("Ana veri çekilemedi. Lütfen tekrar deneyin.");
+                    return;
+                }
+                rawData = await analyzeSettled.value.json();
+                rawData._loadedYears = _years;
+                if (rawData.error) { alert(rawData.error); return; }
+
+                // /tvdata isteğe bağlı — başarısız olursa sessizce atla
+                tvRawData = null;
+                if (tvSettled.status === 'fulfilled' && tvSettled.value.ok) {
+                    try { tvRawData = await tvSettled.value.json(); } catch(_) { tvRawData = null; }
+                    if (tvRawData && tvRawData.error) tvRawData = null;
+                }
+
+                let cariItems = [...rawData.cari];
+
+                if (tvRawData && !tvRawData.error) {
+                    if (tvRawData['Son Fiyat'] !== null && tvRawData['Son Fiyat'] !== undefined) {
+                        rawData.chart.last_price = tvRawData['Son Fiyat'];
+                    }
+                    if (tvRawData['Değişim %'] !== null && tvRawData['Değişim %'] !== undefined) {
+                        updateChangeFromTV(tvRawData['Değişim %']);
+                    }
+
+                    function fmtTVVal(key, val) {
+                        if (val === null || val === undefined) return '--';
+                        if (key === 'Net Kar') {
+                            const abs = Math.abs(val);
+                            const sign = val < 0 ? '-' : '';
+                            if (abs >= 1e9) return sign + (abs/1e9).toFixed(2) + ' Mr';
+                            if (abs >= 1e6) return sign + (abs/1e6).toFixed(2) + ' Mn';
+                            return val.toFixed(2);
+                        }
+                        if (key === 'Temettü Verimi %' || key === 'Faaliyet Kar Marjı %' || key === 'Özkaynak Karlılığı %') return val.toFixed(2) + '%';
+                        return typeof val === 'number' ? val.toFixed(2) : val;
+                    }
+
+                    const netBorcIdx = cariItems.findIndex(i => i.key.includes('Net Borç') || i.key.includes('Net Borc'));
+                    const netKarItem = { key: 'Net Kar', value: fmtTVVal('Net Kar', tvRawData['Net Kar']) };
+                    if (netBorcIdx !== -1) {
+                        cariItems.splice(netBorcIdx + 1, 0, netKarItem);
+                    } else {
+                        cariItems.push(netKarItem);
+                    }
+
+                    const tvTail = [
+                        { key: 'Temettü Verimi %',    val: tvRawData['Temettü Verimi %'] },
+                        { key: 'Cari Oran',            val: tvRawData['Cari Oran'] },
+                        { key: 'Beta (1Y)',            val: tvRawData['Beta (1Y)'] },
+                        { key: 'Faaliyet Kar Marjı %', val: tvRawData['Faaliyet Kar Marjı %'] },
+                        { key: 'Özkaynak Karlılığı %', val: tvRawData['Özkaynak Karlılığı %'] }
+                    ];
+                    tvTail.forEach(item => {
+                        cariItems.push({ key: item.key, value: fmtTVVal(item.key, item.val), rawVal: item.val });
+                    });
+                }
+
+                function getCariColor(key, value) {
+                    const v = parseFloat(String(value).replace(',', '.').replace(/[^0-9.\-]/g, ''));
+                    if (isNaN(v)) return '';
+                    if (key === 'F/K') return (v >= 0 && v <= 20) ? 'val-pos' : 'val-neg';
+                    if (key === 'PD/DD') return v < 2 ? 'val-pos' : 'val-neg';
+                    if (key.includes('Yabancı')) return v > 1 ? 'val-pos' : 'val-neg';
+                    if (key.includes('Halka Açıklık')) return v < 50 ? 'val-pos' : 'val-neg';
+                    if (key === 'Cari Oran') return v > 1 ? 'val-pos' : 'val-neg';
+                    if (key.includes('Net Borç')) return v < 0 ? 'val-pos' : 'val-neg';
+                    if (key === 'Net Kar') {
+                        const isNeg = String(value).trim().startsWith('-');
+                        return isNeg ? 'val-neg' : 'val-pos';
+                    }
+                    if (key === 'H.A. Borsa Değeri') return String(value).includes('Mn TL') ? 'val-pos' : '';
+                    if (key === 'Temettü Verimi %') return v > 1 ? 'val-pos' : '';
+                    if (key === 'Beta (1Y)') return v < 1 ? 'val-pos' : 'val-neg';
+                    if (key === 'Faaliyet Kar Marjı %') return v >= 0 ? 'val-pos' : 'val-neg';
+                    if (key === 'Özkaynak Karlılığı %') return v >= 0 ? 'val-pos' : 'val-neg';
+                    return '';
+                }
+
+                document.getElementById('cari').innerHTML = cariItems.map(i => {
+                    const colorClass = getCariColor(i.key, i.value);
+                    return `<div class="info-item"><span>${i.key}</span><span class="${colorClass}">${i.value}</span></div>`;
+                }).join('');
+
+                document.getElementById('descTitle').innerText = (rawData.company_name || currentSymbol) + " | " + currentSymbol;
+                document.getElementById('desc').innerText = rawData.desc;
+
+                drawChartBase();
+                updateStarUI();
+                updateSymbolIndex();
+                // Önce grafik göster, sonra altın/dolar gelince başlığı güncelle
+                const _gYears = years || 10;
+                changeTimeRange(activeTimeRange, false);
+                const _refreshTitle = () => { if (activeTimeRange) changeTimeRange(activeTimeRange, false); };
+                if (!goldData || (goldData.loadedYears || 0) < _gYears) {
+                    fetchGoldData(_gYears).then(_refreshTitle);
+                }
+                if (!usdData || (usdData.loadedYears || 0) < _gYears) {
+                    fetchUsdData(_gYears).then(_refreshTitle);
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Veri çekilirken hata oluştu.");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function updateChangeFromTV(change) {
+            const items = document.querySelectorAll('#cari .info-item');
+            items.forEach(item => {
+                const keySpan = item.querySelector('span:first-child');
+                const valSpan = item.querySelector('span:last-child');
+                if (keySpan && valSpan && keySpan.textContent.trim() === 'Değişim') {
+                    const color = change > 0 ? 'val-pos' : (change < 0 ? 'val-neg' : '');
+                    const prefix = change > 0 ? '+' : '';
+                    valSpan.innerHTML = `<span class="${color}">${prefix}%${change.toFixed(2)}</span>`;
+                }
+            });
+        }
+
+        function drawChartBase() {
+            const chartDiv = document.getElementById('chart');
+            const dates = rawData.chart.dates;
+            const prices = rawData.chart.prices;
+            const ma50 = rawData.chart.ma50;
+            const ma200 = rawData.chart.ma200;
+
+            const customDates = dates.map(d => { const dt = new Date(d); const dd = String(dt.getDate()).padStart(2,'0'); const mm = String(dt.getMonth()+1).padStart(2,'0'); const yyyy = dt.getFullYear(); return `${dd}.${mm}.${yyyy}`; });
+            const traceP = { x: dates, y: prices, customdata: customDates, type: 'scatter', mode: 'lines', name: 'Fiyat', line: {color: '#5D5CDE', width: 1.2}, hovertemplate: '<b>%{y:.2f} ₺</b><br>%{customdata}<extra></extra>' };
+            const trace50 = { x: dates, y: ma50, type: 'scatter', mode: 'lines', name: 'MA50', line: {color: '#f97316', width: 1.0, dash: 'dot'}, hoverinfo:'skip' };
+            const trace200 = { x: dates, y: ma200, type: 'scatter', mode: 'lines', name: 'MA200', line: {color: '#3B82F6', width: 1.0, dash: 'dot'}, hoverinfo:'skip' };
+
+            const layout = {
+                paper_bgcolor: '#000', plot_bgcolor: '#000',
+                margin: { l: 40, r: 10, t: 30, b: 20 },
+                xaxis: { type: 'date', gridcolor: '#222', tickfont: {color: '#888', size: 10}, fixedrange: false, showspikes: true, spikemode: 'across', spikecolor: '#888', spikethickness: 1, spikedash: 'dot' },
+                yaxis: { gridcolor: '#222', side: 'left', tickfont: {color: '#888', size: 10}, fixedrange: false },
+                showlegend: false, hovermode: 'closest', dragmode: 'pan',
+                newshape: { fillcolor: 'rgba(128, 128, 128, 0.4)', opacity: 0.5 },
+                hoverlabel: { bgcolor: '#1a1a2e', bordercolor: '#5D5CDE', font: { color: '#ffffff', size: 13 }, align: 'left' }
+            };
+
+            document.querySelectorAll('.shape-close-btn').forEach(b => b.remove());
+
+            Plotly.newPlot(chartDiv, [traceP, trace50, trace200], layout, {responsive: true, displayModeBar: false, scrollZoom: false}).then(() => {
+
+                function getPlotBounds() {
+                    const rect = chartDiv.getBoundingClientRect();
+                    const ml = chartDiv.layout.margin.l || 40;
+                    const mr = chartDiv.layout.margin.r || 10;
+                    const mt = chartDiv.layout.margin.t || 30;
+                    const mb = chartDiv.layout.margin.b || 20;
+                    return {
+                        left: rect.left + ml, right: rect.right - mr,
+                        top: rect.top + mt,   bottom: rect.bottom - mb,
+                        plotW: rect.width - ml - mr,
+                        plotH: rect.height - mt - mb,
+                        rect
+                    };
+                }
+
+                function applyZoom(zoomX, zoomY, clientMidX, clientMidY, scale) {
+                    const b = getPlotBounds();
+                    const l = chartDiv.layout;
+                    const xRange = l.xaxis.range;
+                    const yRange = l.yaxis.range;
+                    if (!xRange || !yRange) return;
+                    const update = {};
+
+                    if (zoomX) {
+                        const x0ms = new Date(xRange[0]).getTime();
+                        const x1ms = new Date(xRange[1]).getTime();
+                        const xSpan = x1ms - x0ms;
+                        const ratioX = Math.max(0, Math.min(1, (clientMidX - b.left) / b.plotW));
+                        const xFocus = x0ms + ratioX * xSpan;
+                        update['xaxis.range'] = [
+                            new Date(xFocus - ratioX * xSpan * scale).toISOString(),
+                            new Date(xFocus + (1 - ratioX) * xSpan * scale).toISOString()
+                        ];
+                    }
+                    if (zoomY) {
+                        const y0 = parseFloat(yRange[0]), y1 = parseFloat(yRange[1]);
+                        const ySpan = y1 - y0;
+                        const ratioY = Math.max(0, Math.min(1, 1 - (clientMidY - b.top) / b.plotH));
+                        const yFocus = y0 + ratioY * ySpan;
+                        update['yaxis.range'] = [
+                            yFocus - ratioY * ySpan * scale,
+                            yFocus + (1 - ratioY) * ySpan * scale
+                        ];
+                    }
+                    if (Object.keys(update).length) Plotly.relayout(chartDiv, update);
+                }
+
+                chartDiv.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    const b = getPlotBounds();
+                    const cx = e.clientX, cy = e.clientY;
+                    const scale = e.deltaY > 0 ? 1.12 : 0.89;
+                    const onYAxis = cx < b.left;
+                    const onXAxis = cy > b.bottom;
+                    applyZoom(!onYAxis, !onXAxis, cx, cy, scale);
+                }, { passive: false });
+
+                let touchState = null;
+
+                chartDiv.addEventListener('touchstart', function(e) {
+                    const b = getPlotBounds();
+                    const t0 = e.touches[0];
+
+                    if (e.touches.length === 1) {
+                        const cx = t0.clientX, cy = t0.clientY;
+                        const onYAxis = cx < b.left;
+                        const onXAxis = cy > b.bottom;
+
+                        if (onYAxis) {
+                            e.preventDefault();
+                            touchState = { mode: 'zoomY', startY: cy, startRange: [...chartDiv.layout.yaxis.range] };
+                        } else if (onXAxis) {
+                            e.preventDefault();
+                            touchState = { mode: 'zoomX', startX: cx, startRange: [...chartDiv.layout.xaxis.range] };
+                        } else {
+                            touchState = null;
+                        }
+                    } else if (e.touches.length === 2) {
+                        e.preventDefault();
+                        const t1 = e.touches[1];
+                        const dist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+                        const midX = (t0.clientX + t1.clientX) / 2;
+                        const midY = (t0.clientY + t1.clientY) / 2;
+                        const onYAxis = midX < b.left;
+                        const onXAxis = midY > b.bottom;
+                        touchState = {
+                            mode: onYAxis ? 'zoomY' : onXAxis ? 'zoomX' : 'zoomXY',
+                            startDist: dist, midX, midY
+                        };
+                    }
+                }, { passive: false });
+
+                chartDiv.addEventListener('touchmove', function(e) {
+                    if (!touchState) return;
+                    e.preventDefault();
+                    const b = getPlotBounds();
+
+                    if (e.touches.length === 1 && touchState.mode === 'zoomY') {
+                        const dy = touchState.startY - e.touches[0].clientY;
+                        const scale = Math.pow(0.99, dy);
+                        const l = chartDiv.layout;
+                        const sr = touchState.startRange;
+                        const ySpan = parseFloat(sr[1]) - parseFloat(sr[0]);
+                        const midY = (parseFloat(sr[0]) + parseFloat(sr[1])) / 2;
+                        Plotly.relayout(chartDiv, {
+                            'yaxis.range': [midY - ySpan * scale / 2, midY + ySpan * scale / 2]
+                        });
+                    } else if (e.touches.length === 1 && touchState.mode === 'zoomX') {
+                        const dx = e.touches[0].clientX - touchState.startX;
+                        const scale = Math.pow(1.01, dx);
+                        const sr = touchState.startRange;
+                        const x0ms = new Date(sr[0]).getTime();
+                        const x1ms = new Date(sr[1]).getTime();
+                        const xSpan = x1ms - x0ms;
+                        const midMs = (x0ms + x1ms) / 2;
+                        Plotly.relayout(chartDiv, {
+                            'xaxis.range': [
+                                new Date(midMs - xSpan * scale / 2).toISOString(),
+                                new Date(midMs + xSpan * scale / 2).toISOString()
+                            ]
+                        });
+                    } else if (e.touches.length === 2) {
+                        const t0 = e.touches[0], t1 = e.touches[1];
+                        const newDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+                        const scale = touchState.startDist / newDist;
+                        const zoomX = touchState.mode !== 'zoomY';
+                        const zoomY = touchState.mode !== 'zoomX';
+                        applyZoom(zoomX, zoomY, touchState.midX, touchState.midY, scale);
+                        touchState.startDist = newDist;
+                    }
+                }, { passive: false });
+
+                chartDiv.addEventListener('touchend', function(e) {
+                    if (e.touches.length === 0) touchState = null;
+                }, { passive: true });
+
+                chartDiv.on('plotly_relayout', function(eventData) {
+                    if (eventData['xaxis.range[0]'] || eventData['xaxis.range'] ||
+                        eventData['yaxis.range[0]'] || eventData['yaxis.range']) {
+                        refreshShapeCloseBtns();
+                    }
+                });
+
+                chartDiv.on('plotly_click', function(data) {
+                    if (!document.getElementById('clickPriceMode').checked) return;
+                    if (!data || !data.points || !data.points[0]) return;
+                    const pt = data.points[0];
+                    const clickedPrice = pt.y;
+                    const clickedDate = new Date(pt.x);
+                    if (!rawData) return;
+                    const dates = rawData.chart.dates;
+                    const prices = rawData.chart.prices;
+                    let targetIndex = 0;
+                    // 20Y / özel tarih modu
+                    if (activeTimeRange === '20Y' && customStartDate) {
+                        const targetTime = customStartDate.getTime();
+                        for (let i = 0; i < dates.length; i++) {
+                            if (new Date(dates[i]).getTime() >= targetTime) { targetIndex = i; break; }
+                        }
+                    } else {
+                        const rangeInfo = timeRangeMap[activeTimeRange];
+                        if (rangeInfo) {
+                            const endDate = new Date(dates[dates.length - 1]);
+                            let targetDate = new Date(endDate);
+                            if (rangeInfo.unit === 'months') targetDate.setMonth(endDate.getMonth() - rangeInfo.value);
+                            else if (rangeInfo.unit === 'days') targetDate.setDate(endDate.getDate() - rangeInfo.value);
+                            else targetDate.setFullYear(endDate.getFullYear() - rangeInfo.value);
+                            const targetTime = targetDate.getTime();
+                            for (let i = 0; i < dates.length; i++) {
+                                if (targetTime - new Date(dates[i]).getTime() <= 0) { targetIndex = i; break; }
+                            }
+                        }
+                    }
+                    const f = n => n.toFixed(2);
+                    const dd = String(clickedDate.getDate()).padStart(2,'0');
+                    const mm = String(clickedDate.getMonth()+1).padStart(2,'0');
+                    const yyyy = clickedDate.getFullYear();
+                    const dateStr = `${dd}.${mm}.${yyyy}`;
+                    const titleHTML = buildChartTitle(activeTimeRange, dates, targetIndex, prices, clickedPrice, clickedDate);
+                    if (titleHTML) {
+                        const clickedTitleHTML = titleHTML.replace(
+                            /(<span[^>]*font-size: 14px[^>]*>)[^<]*(<\/span>)/,
+                            `$1${currentSymbol}: ${f(clickedPrice)}\u20BA <span style="font-size:10px;color:#f59e0b;">(${dateStr})</span>$2`
+                        );
+                        Plotly.relayout('chart', { title: { text: clickedTitleHTML, x: 0.5, y: 0.95, font: {size: 14} } });
+                    }
+                });
+            });
+        }
+
+        function buildChartTitle(rangeKey, dates, targetIndex, prices, lastPrice, clickedDate) {
+            if (!dates || !prices || targetIndex === undefined) return null;
+            const f = n => n.toFixed(2);
+            const fPct = n => n.toFixed(0);
+            const visiblePrices = prices.slice(targetIndex);
+            if (!visiblePrices.length) return null;
+            let new_val_max = -Infinity, new_val_min = Infinity;
+            for (const p of visiblePrices) {
+                if (p > new_val_max) new_val_max = p;
+                if (p < new_val_min) new_val_min = p;
+            }
+            const diff_peak   = ((lastPrice - new_val_max) / new_val_max) * 100;
+            const diff_bottom = ((lastPrice - new_val_min) / new_val_min) * 100;
+            const startPrice  = visiblePrices[0];
+            const periodReturn = ((lastPrice - startPrice) / startPrice) * 100;
+            const periodColor  = periodReturn >= 0 ? '#10B981' : '#EF4444';
+            const periodPrefix = periodReturn >= 0 ? '+' : '';
+
+            // Tıklanan tarih varsa oradan, yoksa periyot başından hesapla
+            const refDateStr = clickedDate
+                ? (() => { const d = clickedDate; const dd = String(d.getDate()).padStart(2,'0'); const mm = String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${mm}-${dd}`; })()
+                : dates[targetIndex];
+
+            // Periyot başlangıç tarihi (sabit)
+            const periodStartDateStr = dates[targetIndex];
+
+            let goldReturnHTML = '';
+            if (goldData && goldData.prices && goldData.prices.length > 0) {
+                // Başlangıç: periyot başı
+                let goldStartIdx = 0;
+                for (let i = 0; i < goldData.dates.length; i++) {
+                    if (goldData.dates[i] >= periodStartDateStr) { goldStartIdx = i; break; }
+                }
+                const goldStart = goldData.prices[goldStartIdx];
+                // Bitiş: tıklanan tarih (veya en son fiyat)
+                let goldEndIdx = goldData.prices.length - 1;
+                if (clickedDate) {
+                    for (let i = 0; i < goldData.dates.length; i++) {
+                        if (goldData.dates[i] >= refDateStr) { goldEndIdx = i; break; }
+                    }
+                }
+                const goldEnd = goldData.prices[goldEndIdx];
+                if (goldStart > 0) {
+                    const goldReturn = ((goldEnd - goldStart) / goldStart) * 100;
+                    const goldColor  = goldReturn >= 0 ? '#F59E0B' : '#EF4444';
+                    const goldPrefix = goldReturn >= 0 ? '+' : '';
+                    const fmtGold = n => n >= 1000 ? n.toFixed(0) : n.toFixed(2);
+                    goldReturnHTML = ` | <span style="font-size: 12px; color: ${goldColor};">🥇: ${goldPrefix}%${fPct(goldReturn)} (${fmtGold(goldEnd)}₺)</span>`;
+                }
+            }
+
+            let usdReturnHTML = '';
+            if (usdData && usdData.prices && usdData.prices.length > 0) {
+                // Başlangıç: periyot başı
+                let usdStartIdx = 0;
+                for (let i = 0; i < usdData.dates.length; i++) {
+                    if (usdData.dates[i] >= periodStartDateStr) { usdStartIdx = i; break; }
+                }
+                const usdStart = usdData.prices[usdStartIdx];
+                // Bitiş: tıklanan tarih (veya en son fiyat)
+                let usdEndIdx = usdData.prices.length - 1;
+                if (clickedDate) {
+                    for (let i = 0; i < usdData.dates.length; i++) {
+                        if (usdData.dates[i] >= refDateStr) { usdEndIdx = i; break; }
+                    }
+                }
+                const usdEnd = usdData.prices[usdEndIdx];
+                if (usdStart > 0) {
+                    const usdReturn = ((usdEnd - usdStart) / usdStart) * 100;
+                    const usdColor  = usdReturn >= 0 ? '#60A5FA' : '#EF4444';
+                    const usdPrefix = usdReturn >= 0 ? '+' : '';
+                    usdReturnHTML = ` | <span style="font-size: 12px; color: ${usdColor};">💵: ${usdPrefix}%${fPct(usdReturn)} (${usdEnd.toFixed(2)}₺)</span>`;
+                }
+            }
+
+            return `
+<span style="font-size: 11px; color: #10B981;">Dip: +%${f(diff_bottom)}</span> | 
+<span style="font-size: 14px; font-weight: bold; color: #fff;">${currentSymbol}: ${f(lastPrice)}₺</span> | 
+<span style="font-size: 11px; color: #EF4444;">Zirve: %${f(diff_peak)}</span>
+<br><span style="font-size: 12px; color: ${periodColor};">📅 ${rangeKey}: ${periodPrefix}%${fPct(periodReturn)}</span>${goldReturnHTML}${usdReturnHTML}
+`;
+        }
+
+        function changeTimeRange(rangeKey, doDraw = true) {
+            // 20Y butonu: her zaman sadece takvimi tetikler, grafik aralığı değiştirmez
+            if (rangeKey === '20Y') {
+                if (customStartDate) {
+                    activeTimeRange = '20Y';
+                    document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active-range'));
+                    document.getElementById('btn20Y').classList.add('active-range');
+                    applyCustomStartDate();
+                }
+                return;
+            }
+            activeTimeRange = rangeKey;
+            
+            document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active-range'));
+            document.querySelector(`.time-range-btn[data-range="${rangeKey}"]`).classList.add('active-range');
+
+            if (isUsdMode && usdRawData) {
+                const rangeInfo = timeRangeMap[rangeKey];
+                if (rangeInfo && rangeInfo.unit === 'years') {
+                    const usdDates = usdRawData.chart.dates;
+                    const firstDate = new Date(usdDates[0]);
+                    const lastDate = new Date(usdDates[usdDates.length - 1]);
+                    const requiredDate = new Date(lastDate);
+                    requiredDate.setFullYear(lastDate.getFullYear() - rangeInfo.value);
+                    const alreadyFetched = (usdRawData._loadedYears || 0) >= rangeInfo.value;
+                    if (requiredDate < firstDate && !alreadyFetched) {
+                        const ldr = document.getElementById('usdLoader');
+                        ldr.style.display = 'block';
+                        fetch(apiUrl(`/analyze_usd?s=${currentSymbol}&years=${rangeInfo.value}`))
+                            .then(r => r.json())
+                            .then(data => {
+                                if (!data.error) {
+                                    usdRawData = data;
+                                    usdRawData._symbol = currentSymbol;
+                                    usdRawData._loadedYears = rangeInfo.value;
+                                    drawUsdChart();
+                                    applyUsdTimeRange(rangeKey, usdRawData.chart.dates);
+                                }
+                            })
+                            .catch(() => {})
+                            .finally(() => { ldr.style.display = 'none'; });
+                        return;
+                    }
+                }
+                applyUsdTimeRange(rangeKey, usdRawData.chart.dates);
+                return;
+            }
+
+            if (!rawData) return;
+
+            const dates = rawData.chart.dates;
+            const rangeInfo = timeRangeMap[rangeKey];
+
+            // Yeterli veri var mı kontrol et
+            if (rangeInfo && rangeInfo.unit === 'years') {
+                const firstDate = new Date(dates[0]);
+                const lastDate = new Date(dates[dates.length - 1]);
+                const requiredDate = new Date(lastDate);
+                requiredDate.setFullYear(lastDate.getFullYear() - rangeInfo.value);
+                
+                // Eğer istenen tarih, eldeki verinin başlangıcından önce ise yeniden veri çek
+                // _loadedYears ile sonsuz döngüyü önle
+                const alreadyFetched = (rawData._loadedYears || 0) >= rangeInfo.value;
+                if (requiredDate < firstDate && !alreadyFetched) {
+                    loadData(rangeInfo.value).then(() => {
+                        // loadData içinde changeTimeRange tekrar çağrılacak (activeTimeRange üzerinden)
+                    });
+                    return;
+                }
+            }
+
+            const prices = rawData.chart.prices;
+            const lastPrice = rawData.chart.last_price;
+
+            let targetIndex = 0; 
+            let minDate = dates[0];
+            
+            {
+                const endDate = new Date(dates[dates.length - 1]); 
+                let targetDate = new Date(endDate);
+                if (rangeInfo.unit === 'months') targetDate.setMonth(endDate.getMonth() - rangeInfo.value);
+                else if (rangeInfo.unit === 'days') targetDate.setDate(endDate.getDate() - rangeInfo.value);
+                else targetDate.setFullYear(endDate.getFullYear() - rangeInfo.value);
+                
+                const targetTime = targetDate.getTime();
+                for (let i = 0; i < dates.length; i++) {
+                    if (targetTime - new Date(dates[i]).getTime() <= 0) {
+                        targetIndex = i; break;
+                    }
+                }
+                minDate = dates[targetIndex];
+            }
+
+            let new_val_max = -Infinity, new_idx_max_date = '';
+            let new_val_min = Infinity, new_idx_min_date = '';
+            const visiblePrices = prices.slice(targetIndex); 
+            
+            for (let i = 0; i < visiblePrices.length; i++) {
+                const p = visiblePrices[i];
+                const d = dates[targetIndex + i];
+                if (p > new_val_max) { new_val_max = p; new_idx_max_date = d; }
+                if (p < new_val_min) { new_val_min = p; new_idx_min_date = d; }
+            }
+            
+            const padding = (new_val_max - new_val_min) * 0.05;
+            const diff_peak = ((lastPrice - new_val_max) / new_val_max) * 100;
+            const diff_bottom = ((lastPrice - new_val_min) / new_val_min) * 100;
+            const f = n => n.toFixed(2);
+            
+            const startPrice = visiblePrices[0];
+            const periodReturn = ((lastPrice - startPrice) / startPrice) * 100;
+            const periodColor = periodReturn >= 0 ? '#10B981' : '#EF4444';
+            const periodPrefix = periodReturn >= 0 ? '+' : '';
+
+            const startDateFmt = new Date(dates[targetIndex]).toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'});
+            const startDateObj = new Date(dates[targetIndex]);
+            const today = new Date();
+            let yil = today.getFullYear() - startDateObj.getFullYear();
+            let ay = today.getMonth() - startDateObj.getMonth();
+            let gun = today.getDate() - startDateObj.getDate();
+            if (gun < 0) { ay--; gun += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+            if (ay < 0) { yil--; ay += 12; }
+            const gecenSure = [yil > 0 ? yil + 'y' : '', ay > 0 ? ay + 'a' : '', gun > 0 ? gun + 'g' : ''].filter(Boolean).join(' ') || '0g';
+            document.getElementById('cariTitleText').innerHTML =
+                `Cari Değerler <span style="color:#888; font-size:10px; font-weight:normal;">(${startDateFmt} — ${f(startPrice)}₺ — ${gecenSure})</span>`;
+
+            const titleHTML = buildChartTitle(rangeKey, dates, targetIndex, prices, lastPrice);
+
+            // Altın verisi bu aralık için yetersizse arka planda çek, gelince sadece başlığı güncelle
+            const _needGoldYears = rangeInfo && rangeInfo.unit === 'years' ? rangeInfo.value : 10;
+            const _updateTitle = () => {
+                const t = buildChartTitle(rangeKey, dates, targetIndex, prices, lastPrice);
+                if (t) Plotly.relayout('chart', { title: { text: t, x: 0.5, y: 0.95, font: {size: 14} } });
+            };
+            if (!goldData || (goldData.loadedYears || 0) < _needGoldYears) {
+                fetchGoldData(_needGoldYears).then(_updateTitle);
+            }
+            if (!usdData || (usdData.loadedYears || 0) < _needGoldYears) {
+                fetchUsdData(_needGoldYears).then(_updateTitle);
+            }
+
+            Plotly.relayout('chart', {
+                'xaxis.range': [minDate, dates[dates.length - 1]],
+                'yaxis.range': [new_val_min - padding, new_val_max + padding], 
+                title: { text: titleHTML, x: 0.5, y: 0.95, font: {size: 14} },
+                 
+                annotations: [
+                    { 
+                        x: new_idx_max_date, y: new_val_max, 
+                        text: `<br><b>${f(new_val_max)}</b>`, 
+                        showarrow: true, 
+                        arrowhead: 2, 
+                        arrowcolor: '#10B981',
+                        ax: -10,
+                        ay: 0,
+                        xanchor: 'right', 
+                        font: {color: '#10B981', size: 10} 
+                    }, 
+                    { 
+                        x: new_idx_min_date, y: new_val_min, 
+                        text: `<br><b>${f(new_val_min)}</b>`, 
+                        showarrow: true, 
+                        arrowhead: 2, 
+                        arrowcolor: '#EF4444',
+                        ax: -10,
+                        ay: 0,
+                        xanchor: 'right', 
+                        font: {color: '#EF4444', size: 10} 
+                    }
+                ]
+            });
+        }
+
+        // --- ÇİFT DOKUNMA NAVİGASYONU ---
+        function setupDoubleTap() {
+            const DOUBLE_TAP_MS = 300;
+            const zones = ['cariTitle', 'cari', 'descTitle', 'desc'];
+            zones.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                let lastTap = 0, lastSide = null;
+                el.addEventListener('touchend', function(e) {
+                    const now = Date.now();
+                    const rect = el.getBoundingClientRect();
+                    const touch = e.changedTouches[0];
+                    const side = touch.clientX > rect.left + rect.width / 2 ? 'right' : 'left';
+                    if (now - lastTap < DOUBLE_TAP_MS && side === lastSide) {
+                        e.preventDefault();
+                        move(side === 'right' ? 1 : -1);
+                        lastTap = 0;
+                    } else {
+                        lastTap = now;
+                        lastSide = side;
+                    }
+                }, { passive: false });
+            });
+        }
+
+
+        // ===== 20Y TAKVİM =====
+        let customStartDate = null;
+        let calViewYear = new Date().getFullYear();
+        let calViewMonth = new Date().getMonth();
+        let calTempSelected = null;
+
+        function open20YCalendar(e) {
+            e.stopPropagation();
+            const modal = document.getElementById('calModal');
+            modal.classList.add('open');
+            const init = customStartDate ? new Date(customStartDate) : (() => { const d = new Date(); d.setFullYear(d.getFullYear()-5); return d; })();
+            calViewYear  = init.getFullYear();
+            calViewMonth = init.getMonth();
+            calTempSelected = customStartDate ? new Date(customStartDate) : null;
+            renderCalendar();
+        }
+
+        function closeCalModal() {
+            document.getElementById('calModal').classList.remove('open');
+        }
+
+        function calNavMonth(dir) {
+            calViewMonth += dir;
+            if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+            if (calViewMonth < 0)  { calViewMonth = 11; calViewYear--; }
+            renderCalendar();
+        }
+
+        function calNavYear(dir) {
+            calViewYear += dir;
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+            document.getElementById('calMonthLabel').textContent = months[calViewMonth];
+            document.getElementById('calYearLabel').textContent = calViewYear;
+
+            const grid = document.getElementById('calGrid');
+            grid.innerHTML = '';
+
+            const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+            const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+            const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+
+            let minAllowedDate = null;
+            if (rawData && rawData.chart && rawData.chart.dates && rawData.chart.dates.length) {
+                minAllowedDate = new Date(rawData.chart.dates[0]);
+            }
+            const today = new Date();
+            today.setHours(23,59,59,999);
+
+            for (let i = 0; i < startOffset; i++) {
+                grid.appendChild(document.createElement('div'));
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const thisDate = new Date(calViewYear, calViewMonth, d);
+                const isSelected = calTempSelected &&
+                    calTempSelected.getFullYear() === calViewYear &&
+                    calTempSelected.getMonth() === calViewMonth &&
+                    calTempSelected.getDate() === d;
+                const isToday = new Date().toDateString() === thisDate.toDateString();
+                const isDisabled = (minAllowedDate && thisDate < minAllowedDate) || thisDate > today;
+                const dow = thisDate.getDay();
+                const isWeekend = dow === 0 || dow === 6;
+
+                const cell = document.createElement('button');
+                cell.textContent = d;
+                cell.className = 'cal-day' +
+                    (isSelected ? ' selected' : '') +
+                    (isToday && !isSelected ? ' today' : '') +
+                    (isDisabled ? ' disabled' : '') +
+                    (isWeekend && !isDisabled ? ' weekend' : '');
+
+                if (!isDisabled) {
+                    cell.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        calTempSelected = new Date(calViewYear, calViewMonth, d);
+                        renderCalendar();
+                    });
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function applyCalDate() {
+            if (!calTempSelected) return;
+            customStartDate = new Date(calTempSelected);
+            closeCalModal();
+            updateBtn20YLabel();
+            applyCustomStartDate();
+        }
+
+        function clearCalDate() {
+            customStartDate = null;
+            calTempSelected = null;
+            closeCalModal();
+            document.getElementById('btn20YLabel').innerHTML = '📅';
+            document.getElementById('btn20Y').classList.remove('active-range');
+            // Önceki aktif range'e dön (20Y değilse), yoksa 5Y'e dön
+            const fallback = (activeTimeRange && activeTimeRange !== '20Y') ? activeTimeRange : '5Y';
+            changeTimeRange(fallback);
+        }
+
+        function updateBtn20YLabel() {
+            if (!customStartDate) {
+                document.getElementById('btn20YLabel').innerHTML = '📅';
+                return;
+            }
+            const dd = String(customStartDate.getDate()).padStart(2,'0');
+            const mm = String(customStartDate.getMonth()+1).padStart(2,'0');
+            const yyyy = customStartDate.getFullYear();
+            document.getElementById('btn20YLabel').innerHTML =
+                `<span style="font-size:9px;line-height:1.3;display:block;">${dd}.${mm}</span><span style="font-size:9px;line-height:1.3;display:block;">${yyyy}</span>`;
+        }
+
+        function applyCustomStartDate() {
+            if (!customStartDate || !rawData) return;
+            activeTimeRange = '20Y';
+            document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active-range'));
+            document.getElementById('btn20Y').classList.add('active-range');
+
+            const dates  = rawData.chart.dates;
+            const prices = rawData.chart.prices;
+            const lastPrice = rawData.chart.last_price;
+
+            const targetTime = customStartDate.getTime();
+            let targetIndex = 0;
+            for (let i = 0; i < dates.length; i++) {
+                if (new Date(dates[i]).getTime() >= targetTime) { targetIndex = i; break; }
+            }
+            const minDate = dates[targetIndex];
+
+            let new_val_max = -Infinity, new_idx_max_date = '';
+            let new_val_min = Infinity,  new_idx_min_date = '';
+            const visiblePrices = prices.slice(targetIndex);
+            for (let i = 0; i < visiblePrices.length; i++) {
+                const p = visiblePrices[i];
+                const dd = dates[targetIndex + i];
+                if (p > new_val_max) { new_val_max = p; new_idx_max_date = dd; }
+                if (p < new_val_min) { new_val_min = p; new_idx_min_date = dd; }
+            }
+            const padding = (new_val_max - new_val_min) * 0.05;
+            const f = n => n.toFixed(2);
+
+            const startDateFmt = customStartDate.toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'});
+            const today = new Date();
+            let yil = today.getFullYear() - customStartDate.getFullYear();
+            let ay  = today.getMonth() - customStartDate.getMonth();
+            let gun = today.getDate()  - customStartDate.getDate();
+            if (gun < 0) { ay--; gun += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+            if (ay  < 0) { yil--; ay += 12; }
+            const gecenSure = [yil>0?yil+'y':'', ay>0?ay+'a':'', gun>0?gun+'g':''].filter(Boolean).join(' ') || '0g';
+            document.getElementById('cariTitleText').innerHTML =
+                `Cari Değerler <span style="color:#888; font-size:10px; font-weight:normal;">(${startDateFmt} — ${f(visiblePrices[0])}₺ — ${gecenSure})</span>`;
+
+            const titleHTML = buildChartTitle('20Y', dates, targetIndex, prices, lastPrice);
+            Plotly.relayout('chart', {
+                'xaxis.range': [minDate, dates[dates.length - 1]],
+                'yaxis.range': [new_val_min - padding, new_val_max + padding],
+                title: { text: titleHTML, x: 0.5, y: 0.95, font: {size: 14} },
+                annotations: [
+                    { x: new_idx_max_date, y: new_val_max, text: `<br><b>${f(new_val_max)}</b>`, showarrow: true, arrowhead: 2, arrowcolor: '#10B981', ax: -10, ay: 0, xanchor: 'right', font: {color: '#10B981', size: 10} },
+                    { x: new_idx_min_date, y: new_val_min, text: `<br><b>${f(new_val_min)}</b>`, showarrow: true, arrowhead: 2, arrowcolor: '#EF4444', ax: -10, ay: 0, xanchor: 'right', font: {color: '#EF4444', size: 10} }
+                ]
+            });
+        }
+
+        // Modal dışına tıklayınca kapat
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('calModal');
+            if (modal && modal.classList.contains('open')) {
+                const box = document.querySelector('.cal-box');
+                if (box && box.contains(e.target)) return;
+                closeCalModal();
+            }
+        });
+
+        window.onload = () => {
+            loadCustomLists();
+            loadFavorites();
+            document.getElementById('listSelect').value = "Tüm Hisseler";
+            document.getElementById('symbol').value = currentSymbol;
+            loadData();
+            const initIdx = activeList.indexOf(currentSymbol);
+            schedulePrefetch(initIdx >= 0 ? initIdx : 0);
+            updateSymbolIndex();
+            setupDoubleTap();
+
+            // Checkbox işareti kaldırılınca başlığı normale döndür
+            document.getElementById('clickPriceMode').addEventListener('change', function() {
+                if (!this.checked && rawData) {
+                    changeTimeRange(activeTimeRange, false);
+                }
+            });
+        };
+    </script>
+
+
+    <!-- ===== TAKVİM MODALİ ===== -->
+    <div id="calModal">
+        <div class="cal-box">
+            <div class="cal-header">
+                <span class="cal-title">📅 Başlangıç Tarihi Seç</span>
+                <button class="cal-close" onclick="closeCalModal()">✕ Kapat</button>
+            </div>
+            <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="calNavMonth(-1)">‹</button>
+                <span id="calMonthLabel"></span>
+                <button class="cal-nav-btn" onclick="calNavMonth(1)">›</button>
+            </div>
+            <div class="cal-year-nav">
+                <button class="cal-year-btn" onclick="calNavYear(-1)">« -1Y</button>
+                <span id="calYearLabel"></span>
+                <button class="cal-year-btn" onclick="calNavYear(1)">+1Y »</button>
+            </div>
+            <div class="cal-dow">
+                <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span>
+                <span class="weekend">Ct</span><span class="weekend">Pz</span>
+            </div>
+            <div id="calGrid"></div>
+            <div class="cal-footer">
+                <button class="cal-apply" onclick="applyCalDate()">✓ Uygula</button>
+                <button class="cal-clear" onclick="clearCalDate()">✕ Temizle (20Y)</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
