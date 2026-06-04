@@ -137,12 +137,12 @@
         /* Hisse Listesi Dropdown */
         #stockListDropdown {
             position: absolute;
-            bottom: 100%;
+            top: 100%;
             left: 0;
             right: 0;
             background: #1a1a1a;
             border: 1px solid #5D5CDE;
-            border-radius: 8px 8px 0 0;
+            border-radius: 0 0 8px 8px;
             max-height: 380px;
             overflow-y: auto;
             display: none;
@@ -187,7 +187,7 @@
             line-height: 1;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        .suggestions { position: absolute; bottom: 100%; left: 0; right: 0; background: var(--bg3); border: 1px solid #444; max-height: 200px; overflow-y: auto; display: none; z-index: 50; border-radius: 6px 6px 0 0;}
+        .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg3); border: 1px solid #444; max-height: 200px; overflow-y: auto; display: none; z-index: 50; border-radius: 0 0 6px 6px;}
         .suggestion-item { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 13px;}
         
         .active-range { background: #5D5CDE !important; border-color: #5D5CDE; }
@@ -196,6 +196,47 @@
         .btn-tool:hover { background: var(--bg4); }
         
         #loader { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; color: #5D5CDE; font-weight: bold; font-size: 14px; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 8px;}
+
+        /* ===== HIZLI LİSTE BUTONLARI ===== */
+        .quick-lists-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px;
+        }
+        .quick-list-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px;
+            padding: 5px 6px !important;
+            font-size: 10px !important;
+            font-weight: bold;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text2);
+            transition: background 0.15s, border-color 0.15s;
+            text-align: left;
+            line-height: 1.2;
+            min-height: 28px;
+        }
+        .quick-list-btn:hover { background: var(--bg4); }
+        .quick-list-btn .qstar {
+            font-size: 12px;
+            color: var(--text4);
+            transition: color 0.2s, text-shadow 0.2s;
+            flex-shrink: 0;
+        }
+        .quick-list-btn.ql-active .qstar {
+            color: #FFD700;
+            text-shadow: 0 0 6px rgba(255,215,0,0.7);
+        }
+        .quick-list-btn.ql-active {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.08);
+            color: var(--text);
+        }
 
         /* Yıldız Butonu */
         #starBtn {
@@ -558,6 +599,43 @@
             display: none;
         }
     
+        /* ===== YEDEK MENÜSÜ ===== */
+        #backupMenu {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            background: var(--bg2);
+            border: 1px solid #34d399;
+            border-radius: 10px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+            width: 220px;
+            overflow: hidden;
+        }
+        #backupMenu.open { display: block; }
+        .backup-menu-title {
+            font-size: 11px;
+            color: #34d399;
+            font-weight: bold;
+            padding: 8px 12px 6px;
+            border-bottom: 1px solid #333;
+            letter-spacing: 0.4px;
+        }
+        .backup-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: var(--text);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+            font-weight: bold;
+        }
+        .backup-menu-item:last-child { border-bottom: none; }
+        .backup-menu-item:hover { background: var(--bg4); }
+        .backup-menu-item .bm-icon { font-size: 16px; }
+
         /* ===== TAKVİM MODALİ ===== */
         #calModal {
             display: none;
@@ -865,6 +943,7 @@
 <option value="Küçük Sermaye">Küçük Sermaye (266)</option>
 <option value="Tüm 500'ler">Tüm 500'ler (172)</option>
 <option value="GÖZDE">GÖZDE (31)</option>
+<option value="Zirve-Dip">Zirve-Dip (63)</option>
 <option value="Elimdekiler">Elimdekiler (7)</option>
 
             </select>
@@ -893,14 +972,29 @@
             <button class="btn-tool" id="tvBtn" onclick="openTVModal()" style="color:#38bdf8;">📊 T-View</button>
         </div>
         <div class="row">
-            <button class="btn-tool" id="themeBtn" onclick="toggleTheme()" style="color:#facc15;">🌙 Karanlık</button>
+            <button class="btn-tool" id="themeBtn" onclick="toggleTheme()" style="color:#facc15; font-size:10px;">🌙 Karanlık</button>
+            <button class="btn-tool" onclick="toggleBackupMenu(event)" style="color:#34d399; font-size:10px; position:relative;">💾 Yedek</button>
         </div>
         <div class="row">
             <button class="btn-tool" onclick="loadRandomSymbol()" style="color:#10B981;">↻ Rastgele</button>
-            <button class="btn-tool" onclick="openAIModal(event)" style="color:#a78bfa;">🤖 AI Analiz</button>
         </div>
         <div class="row">
             <button class="btn-tool" id="deleteListBtn" onclick="deleteCustomList()" style="color:#EF4444; display:none;">🗑️ Listeyi Sil</button>
+        </div>
+
+        <!-- Hızlı Listeler -->
+        <span class="ctrl-label">Hızlı Listeler</span>
+        <div class="quick-lists-grid">
+            <button class="quick-list-btn" id="ql-Eldeki"   onclick="toggleQuickList('Eldeki')">  <span class="qstar">★</span> Eldeki</button>
+            <button class="quick-list-btn" id="ql-Temettu"   onclick="toggleQuickList('Temettu')">  <span class="qstar">★</span> Temettu</button>
+            <button class="quick-list-btn" id="ql-Tem5plus" onclick="toggleQuickList('Tem5+')">   <span class="qstar">★</span> Tem5+</button>
+            <button class="quick-list-btn" id="ql-Kucuk"    onclick="toggleQuickList('Küçük')">   <span class="qstar">★</span> Küçük</button>
+            <button class="quick-list-btn" id="ql-Orta"     onclick="toggleQuickList('Orta')">    <span class="qstar">★</span> Orta</button>
+            <button class="quick-list-btn" id="ql-Populer"  onclick="toggleQuickList('Popüler')"> <span class="qstar">★</span> Popüler</button>
+            <button class="quick-list-btn" id="ql-Borcsuz"  onclick="toggleQuickList('Borçsuz')"> <span class="qstar">★</span> Borçsuz</button>
+            <button class="quick-list-btn" id="ql-Karda"    onclick="toggleQuickList('Karda')">   <span class="qstar">★</span> Karda</button>
+            <button class="quick-list-btn" id="ql-PDDD"     onclick="toggleQuickList('Ucuz')"> <span class="qstar">★</span> Ucuz</button>
+            <button class="quick-list-btn" id="ql-Yabanci"  onclick="toggleQuickList('Yabancı')"><span class="qstar">★</span> Yabancı</button>
         </div>
 
         <!-- Liste Yönetimi -->
@@ -975,7 +1069,7 @@
             navigator.serviceWorker.register('/sw.js');
         }
 
-        const symbolLists = {"Tüm Hisseler": ["A1CAP", "A1YEN", "ACSEL", "ADEL", "ADESE", "ADGYO", "AEFES", "AFYON", "AGESA", "AGHOL", "AGROT", "AGYO", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKFYE", "AKGRT", "AKHAN", "AKMGY", "AKSA", "AKSEN", "AKSGY", "AKSUE", "AKYHO", "ALARK", "ALBRK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKA", "ALKIM", "ALKLC", "ALTINS1", "ALTNY", "ALVES", "ANELE", "ANGEN", "ANHYT", "ANSGR", "ARASE", "ARCLK", "ARDYZ", "ARENA", "ARFYE", "ARMGD", "ARSAN", "ARTMS", "ARZUM", "ASELS", "ASGYO", "ASTOR", "ASUZU", "ATAGY", "ATAKP", "ATATP", "ATATR", "ATEKS", "ATLAS", "ATSYH", "AVGYO", "AVHOL", "AVOD", "AVPGY", "AVTUR", "AYCES", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BALAT", "BALSU", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BEGYO", "BERA", "BESLR", "BESTE", "BEYAZ", "BFREN", "BIENY", "BIGCH", "BIGEN", "BIGTK", "BIMAS", "BINBN", "BINHO", "BIOEN", "BIZIM", "BJKAS", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORLS", "BORSK", "BOSSA", "BRISA", "BRKO", "BRKSN", "BRKVY", "BRLSM", "BRMEN", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "BUCIM", "BULGS", "BURCE", "BURVA", "BVSAN", "BYDNR", "CANTE", "CASA", "CATES", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CEOEM", "CGCAM", "CIMSA", "CLEBI", "CMBTN", "CMENT", "CONSE", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CVKMD", "CWENE", "DAGI", "DAPGM", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DGATE", "DGGYO", "DGNMO", "DIRIT", "DITAS", "DMLKTG", "DMRGD", "DMSAS", "DNISI", "DOAS", "DOCO", "DOFER", "DOFRB", "DOGUB", "DOHOL", "DOKTA", "DSTKF", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EBEBK", "ECILC", "ECOGR", "ECZYT", "EDATA", "EDIP", "EFOR", "EGEEN", "EGEGY", "EGEPO", "EGGUB", "EGPRO", "EGSER", "EKGYO", "EKIZ", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMNIS", "EMPAE", "ENDAE", "ENERY", "ENJSA", "ENKAI", "ENSRI", "ENTRA", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "ESCAR", "ESCOM", "ESEN", "ETILR", "ETYAT", "EUHOL", "EUKYO", "EUPWR", "EUREN", "EUYO", "EYGYO", "FADE", "FENER", "FLAP", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "FROTO", "FZLGY", "GARAN", "GARFA", "GATEG", "GEDIK", "GEDZA", "GENIL", "GENKM", "GENTS", "GEREL", "GESAN", "GIPTA", "GLBMD", "GLCVY", "GLRMK", "GLRYH", "GLYHO", "GMTAS", "GOKNR", "GOLTS", "GOODY", "GOZDE", "GRNYO", "GRSEL", "GRTHO", "GSDDE", "GSDHO", "GSRAY", "GUBRF", "GUNDG", "GWIND", "GZNMI", "HALKB", "HATEK", "HATSN", "HDFGS", "HEDEF", "HEKTS", "HKTM", "HLGYO", "HOROZ", "HRKET", "HTTBT", "HUBVC", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHAAS", "IHEVA", "IHGZT", "IHLAS", "IHLGM", "IHYAY", "IMASM", "INDES", "INFO", "INGRM", "INTEK", "INTEM", "INVEO", "INVES", "ISATR", "ISBIR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGSY", "ISGYO", "ISKPL", "ISKUR", "ISMEN", "ISSEN", "ISYAT", "IZENR", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KBORU", "KCAER", "KCHOL", "KENT", "KERVN", "KFEIN", "KGYO", "KIMMR", "KLGYO", "KLKIM", "KLMSN", "KLNMA", "KLRHO", "KLSER", "KLSYN", "KLYPV", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONTR", "KONYA", "KOPOL", "KORDS", "KOTON", "KRDMA", "KRDMB", "KRDMD", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KSTUR", "KTLEV", "KTSKR", "KUTPO", "KUVVA", "KUYAS", "KZBGY", "KZGYO", "LIDER", "LIDFA", "LILAK", "LINK", "LKMNH", "LMKDC", "LOGO", "LRSHO", "LUKSK", "LXGYO", "LYDHO", "LYDYE", "MAALT", "MACKO", "MAGEN", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MAVI", "MCARD", "MEDTR", "MEGAP", "MEGMT", "MEKAG", "MEPET", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MGROS", "MHRGY", "MIATK", "MMCAS", "MNDRS", "MNDTR", "MOBTL", "MOGAN", "MOPAS", "MPARK", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "MTRYO", "MZHLD", "NATEN", "NETAS", "NETCD", "NIBAS", "NTGAZ", "NTHOL", "NUGYO", "NUHCM", "OBAMS", "OBASE", "ODAS", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORCAY", "ORGE", "ORMA", "OSMEN", "OSTIM", "OTKAR", "OTTO", "OYAKC", "OYAYO", "OYLUM", "OYYAT", "OZATD", "OZGYO", "OZKGY", "OZRDN", "OZSUB", "OZYSR", "PAGYO", "PAHOL", "PAMEL", "PAPIL", "PARSN", "PASEU", "PATEK", "PCILT", "PEKGY", "PENGD", "PENTA", "PETKM", "PETUN", "PGSUS", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "POLHO", "POLTK", "PRDGS", "PRKAB", "PRKME", "PRZMA", "PSDTC", "PSGYO", "QNBFK", "QNBTR", "QUAGR", "RALYH", "RAYSG", "REEDR", "RGYAS", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "RYGYO", "RYSAS", "SAFKR", "SAHOL", "SAMAT", "SANEL", "SANFM", "SANKO", "SARKY", "SASA", "SAYAS", "SDTTR", "SEGMN", "SEGYO", "SEKFK", "SEKUR", "SELEC", "SELVA", "SERNT", "SEYKM", "SILVR", "SISE", "SKBNK", "SKTAS", "SKYLP", "SKYMD", "SMART", "SMRTG", "SMRVA", "SNGYO", "SNICA", "SNPAM", "SODSN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SUNTK", "SURGY", "SUWEN", "SVGYO", "TABGD", "TARKM", "TATEN", "TATGD", "TAVHL", "TBORG", "TCELL", "TCKRC", "TDGYO", "TEHOL", "TEKTU", "TERA", "TEZOL", "TGSAS", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TMSN", "TNZTP", "TOASO", "TRALT", "TRCAS", "TRENJ", "TRGYO", "TRHOL", "TRILC", "TRMET", "TSGYO", "TSKB", "TSPOR", "TTKOM", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "TUREX", "TURGG", "TURSG", "UCAYM", "UFUK", "ULAS", "ULKER", "ULUFA", "ULUSE", "ULUUN", "UMPAS", "UNLU", "USAK", "VAKBN", "VAKFA", "VAKFN", "VAKKO", "VANGD", "VBTYZ", "VERTU", "VERUS", "VESBE", "VESTL", "VKFYO", "VKGYO", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YBTAS", "YEOTK", "YESIL", "YGGYO", "YIGIT", "YKBNK", "YKSLN", "YONGA", "YUNSA", "YYAPI", "YYLGD", "ZEDUR", "ZERGY", "ZGYO", "ZOREN", "ZRGYO"], "BIST 50-30": ["ALARK", "ARCLK", "BRSAN", "BTCIM", "CANTE", "CCOLA", "CIMSA", "DOAS", "HALKB", "HEKTS", "KONTR", "KUYAS", "MAVI", "MIATK", "OYAKC", "PASEU", "TRMET", "TSKB", "TURSG", "ULKER"], "KATILIM 30": ["ALKLC", "ALTNY", "ASELS", "BIMAS", "BSOKE", "CANTE", "CIMSA", "CVKMD", "CWENE", "DAPGM", "EFOR", "EKGYO", "EREGL", "EUPWR", "GENIL", "GLRMK", "GUBRF", "KRDMD", "KTLEV", "MAVI", "OBAMS", "PASEU", "PETKM", "QUAGR", "RALYH", "TKFEN", "TUKAS", "TUPRS", "TUREX", "YEOTK"], "KATILIM 50": ["ALKLC", "ALTNY", "ASELS", "BERA", "BIMAS", "BINHO", "BMSTL", "BSOKE", "CANTE", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOFRB", "EFOR", "EKGYO", "ENJSA", "EREGL", "EUPWR", "FORMT", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GUBRF", "IHLAS", "IZFAS", "KARSN", "KATMR", "KCAER", "KRDMD", "KTLEV", "KZBGY", "MAGEN", "MAVI", "MPARK", "NETCD", "OBAMS", "PASEU", "PETKM", "QUAGR", "RALYH", "SARKY", "TKFEN", "TUKAS", "TUPRS", "TUREX", "USAK", "YEOTK"], "KATILIM 100": ["AKFYE", "ALBRK", "ALFAS", "ALKLC", "ALTNY", "ALVES", "ARDYZ", "ASELS", "ATATP", "BEGYO", "BERA", "BIENY", "BIMAS", "BINBN", "BINHO", "BMSTL", "BSOKE", "CANTE", "CEMTS", "CEMZY", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DCTTR", "DOFRB", "EFOR", "EGGUB", "EKGYO", "ENJSA", "EREGL", "EUPWR", "FONET", "FORMT", "FZLGY", "GENIL", "GENTS", "GEREL", "GESAN", "GLRMK", "GOKNR", "GRSEL", "GRTHO", "GUBRF", "GUNDG", "HRKET", "IHLAS", "IHLGM", "IMASM", "ISDMR", "IZFAS", "JANTS", "KARSN", "KATMR", "KBORU", "KCAER", "KOPOL", "KRDMD", "KTLEV", "KZBGY", "LMKDC", "LOGO", "MAGEN", "MAVI", "MEGMT", "MERCN", "MEYSU", "MOPAS", "MPARK", "NETCD", "NTGAZ", "OBAMS", "ORGE", "OZATD", "PASEU", "PETKM", "POLHO", "QUAGR", "RALYH", "RGYAS", "SAFKR", "SARKY", "SAYAS", "SDTTR", "SELEC", "SNGYO", "SRVGY", "SUNTK", "SURGY", "TARKM", "TEZOL", "TKFEN", "TKNSA", "TUKAS", "TUPRS", "TUREX", "USAK", "YEOTK", "YIGIT", "ZERGY"], "KATILIM SURD": ["ALBRK", "ASELS", "BIMAS", "BRISA", "BSOKE", "CIMSA", "ENJSA", "EREGL", "GRSEL", "ISDMR", "KARSN", "KLSER", "KMPUR", "LOGO", "MAGEN", "MAVI", "MPARK", "PETKM", "POLHO", "QUAGR", "SUNTK", "TKFEN", "TKNSA", "TUPRS", "YUNSA"], "KATILIM TEMETTU": ["ARASE", "ARDYZ", "ASELS", "ATATP", "AYEN", "BASGZ", "BIMAS", "CIMSA", "EBEBK", "EGGUB", "EGPRO", "ELITE", "EMPAE", "EREGL", "GENIL", "GOLTS", "GRSEL", "ISDMR", "JANTS", "KCAER", "KTLEV", "LKMNH", "LOGO", "MAVI", "MCARD", "NTGAZ", "PAGYO", "PLTUR", "SARKY", "SUNTK", "SUWEN", "TUPRS", "VAKKO", "YUNSA"], "BIST SURD-25": ["AEFES", "AKBNK", "ARCLK", "ASELS", "BIMAS", "CIMSA", "DOAS", "ENKAI", "GARAN", "ISCTR", "KCHOL", "MAVI", "MGROS", "OYAKC", "PETKM", "PGSUS", "SAHOL", "SISE", "TAVHL", "TCELL", "THYAO", "TSKB", "TUPRS", "ULKER", "YKBNK"], "GERI ALIM": ["AHGAZ", "ATAKP", "ATATP", "AVGYO", "BLUME", "BOBET", "BORLS", "BOSSA", "DAGI", "EFOR", "ENDAE", "ENERY", "GENIL", "GLYHO", "GOKNR", "GSDHO", "GWIND", "HRKET", "HUNER", "INVES", "KAYSE", "KLSYN", "KLYPV", "KOCMT", "KONKA", "LIDER", "LKMNH", "LOGO", "MAVI", "MEPET", "MERCN", "MERKO", "MIATK", "NTHOL", "ORGE", "PRKME", "SUWEN", "TCELL", "TEZOL", "THYAO", "VAKBN", "VAKFA", "VERTU"], "SABANCI TOP": ["AFYON", "AGESA", "AKBNK", "AKCNS", "AKGRT", "BRISA", "CIMSA", "CRFSA", "ENJSA", "KORDS", "SAHOL", "TKNSA"], "BUY SIRKETLER": ["AAGYO", "ADESE", "AHSGY", "AKHAN", "ALVES", "ARDYZ", "ARFYE", "ARMGD", "ASELS", "ASGYO", "ASUZU", "ATATP", "AYDEM", "BESTE", "BIGEN", "BMSTL", "BRSAN", "BRYAT", "CIMSA", "CLEBI", "CWENE", "DERHL", "DGATE", "DOFER", "DOFRB", "EBEBK", "ECOGR", "EDATA", "EFOR", "EGEGY", "EGGUB", "EKGYO", "ENKAI", "ESCOM", "ETILR", "EUPWR", "FADE", "FONET", "FORTE", "GEDZA", "GMTAS", "GRTHO", "GUBRF", "HDFGS", "HEDEF", "HLGYO", "HRKET", "HTTBT", "IHLGM", "ISGSY", "KARSN", "KATMR", "KIMMR", "KRGYO", "KRONT", "LINK", "MACKO", "MARBL", "MEGMT", "MERIT", "METRO", "MHRGY", "MOBTL", "MSGYO", "NETAS", "NETCD", "ONCSM", "OTKAR", "OZGYO", "PAGYO", "PAHOL", "PASEU", "PATEK", "PCILT", "PEKGY", "PENTA", "PGSUS", "PLTUR", "PRDGS", "PRZMA", "RGYAS", "SEGMN", "SRVGY", "TAVHL", "TCELL", "TCKRC", "TEHOL", "THYAO", "TNZTP", "TOASO", "TRALT", "TRENJ", "TRILC", "TRMET", "TTKOM", "TUREX", "YEOTK", "YGGYO", "YUNSA", "YYLGD"], "AK DEGER-100": ["A1CAP", "A1YEN", "AEFES", "AHSGY", "AKBNK", "AKFGY", "AKFYE", "AKGRT", "AKSA", "AKSGY", "ALBRK", "ANSGR", "ARASE", "ARTMS", "ASGYO", "AVHOL", "AVPGY", "AYGAZ", "BASGZ", "BAGFS", "BESLR", "BINHO", "BNTAS", "BULGS", "CATES", "DESA", "DOAS", "DUNYH", "DZGYO", "EDIP", "EKGYO", "ESCOM", "EUREN", "FORTE", "GARAN", "GARFA", "GEDIK", "GLCVY", "GLRYH", "GLYHO", "GOKNR", "GOLTS", "GSDDE", "GSDHO", "HALKB", "HDFGS", "HLGYO", "IHGZT", "IHLGM", "INDES", "INFO", "ISCTR", "ISFIN", "ISGSY", "KATMR", "KIMMR", "KRSTL", "KUTPO", "KZBGY", "LIDFA", "LILAK", "MERIT", "MHRGY", "MNDRS", "NTGAZ", "NTHOL", "ODAS", "ORGE", "OYYAT", "PAGYO", "PAHOL", "PCILT", "PETUN", "PGSUS", "PLTUR", "PSGYO", "RGYAS", "RTALB", "SISE", "SRVGY", "SURGY", "TCELL", "THYAO", "TMSN", "TNZTP", "TRCAS", "TRGYO", "TSKB", "TTKOM", "TUREX", "TURSG", "ULKER", "ULUFA", "VAKBN", "VAKFA", "VAKFN", "VKGYO", "YGGYO", "YKBNK", "YUNSA", "YYLGD"], "HOLDING-YATIRIM": ["AGHOL", "AKYHO", "ALARK", "ARSAN", "AVHOL", "BERA", "BINHO", "BRYAT", "BULGS", "COSMO", "DENGE", "DERHL", "DOHOL", "DUNYH", "ECILC", "ECZYT", "GLRYH", "GLYHO", "GOZDE", "GRTHO", "GSDHO", "HDFGS", "HEDEF", "HUBVC", "ICUGS", "IEYHO", "IHLAS", "IHYAY", "INVEO", "INVES", "ISGSY", "KCHOL", "KLRHO", "LRSHO", "LYDHO", "MARKA", "METRO", "MZHLD", "NTHOL", "OSTIM", "OTTO", "PAHOL", "POLHO", "PRDGS", "RALYH", "SAHOL", "SISE", "TAVHL", "TEHOL", "TKFEN", "TRCAS", "TRHOL", "UFUK", "UNLU", "VERTU", "VERUS", "YESIL"], "ILETISIM": ["TCELL", "TTKOM"], "ORMAN KAGIT BASIM": ["ALKA", "BAKAB", "BARMA", "DGNMO", "DURDO", "GENTS", "GIPTA", "KAPLM", "KARTN", "KLSYN", "KONKA", "LILAK", "MNDTR", "PRZMA", "SAMAT", "TEZOL", "VKING"], "KIMYA-PET-PLAS": ["ACSEL", "AKSA", "ALKIM", "ANGEN", "AYGAZ", "BAGFS", "BAHKM", "BAYRK", "BRISA", "BRKSN", "DEVA", "DNISI", "DYOBY", "EGGUB", "EGPRO", "EPLAS", "EUREN", "FRMPL", "GEDZA", "GENKM", "GOODY", "GUBRF", "HEKTS", "ISKPL", "IZFAS", "KBORU", "KMPUR", "KOPOL", "KRPLS", "MARMR", "MEDTR", "MERCN", "MRSHL", "ONCSM", "OZRDN", "PETKM", "POLTK", "RNPOL", "RTALB", "SANFM", "SASA", "SEKUR", "SEYKM", "TARKM", "TMPOL", "TRILC", "TUPRS"], "METAL ANA": ["BLUME", "BMSCH", "BMSTL", "BRSAN", "BURCE", "BURVA", "CELHA", "CEMAS", "CEMTS", "CUSAN", "DMSAS", "DOFER", "DOKTA", "ERBOS", "ERCB", "EREGL", "ISDMR", "IZMDC", "KCAER", "KOCMT", "KRDMA", "KRDMB", "KRDMD", "MEGMT", "OZYSR", "PNLSN", "SARKY", "TCKRC", "TUCLK", "YKSLN"], "METAL ESYA MAKINA": ["ALCAR", "ALVES", "ARCLK", "ASTOR", "ASUZU", "BFREN", "BNTAS", "BVSAN", "DITAS", "EGEEN", "EKOS", "EMKEL", "EUPWR", "FMIZP", "FORMT", "FROTO", "GEREL", "HATSN", "HKTM", "IHEVA", "IMASM", "JANTS", "KARSN", "KATMR", "KLMSN", "MAKIM", "MAKTK", "MEKAG", "OTKAR", "OZATD", "PARSN", "PRKAB", "SAFKR", "SAYAS", "SILVR", "SNICA", "TMSN", "TOASO", "TTRAK", "ULUSE", "VESBE", "VESTL", "YIGIT"], "SIGORTA": ["AGESA", "AKGRT", "ANHYT", "ANSGR", "RAYSG", "TURSG"], "TAS TOPRAK": ["AFYON", "AKCNS", "BIENY", "BOBET", "BSOKE", "BTCIM", "BUCIM", "CGCAM", "CIMSA", "CMBTN", "DOGUB", "EGSER", "GOLTS", "KLKIM", "KLSER", "KONYA", "KUTPO", "LMKDC", "MARBL", "NIBAS", "NUHCM", "OYAKC", "QUAGR", "SERNT", "USAK"], "TICARET": ["ARZUM", "BIMAS", "BIZIM", "CRFSA", "DCTTR", "DOAS", "EBEBK", "GENIL", "GMTAS", "INTEM", "KIMMR", "KOTON", "KUVVA", "MAVI", "MEPET", "MGROS", "MOPAS", "PSDTC", "SANKO", "SELEC", "SOKM", "SUWEN", "TGSAS", "TKNSA", "VAKKO"], "TEKSTIL DERI": ["ARTMS", "BLCYT", "BOSSA", "DAGI", "DERIM", "DESA", "ENSRI", "HATEK", "ISSEN", "KORDS", "KRTEK", "LUKSK", "MNDRS", "RODRG", "RUBNS", "SKTAS", "SUNTK", "YATAS", "YUNSA"], "TURIZM": ["ATATR", "AVTUR", "AYCES", "BIGCH", "BYDNR", "DOCO", "ETILR", "MAALT", "MARTI", "MERIT", "PKENT", "TABGD", "TEKTU", "ULAS"], "BIST 30": ["AEFES", "AKBNK", "ASELS", "ASTOR", "BIMAS", "DSTKF", "EKGYO", "ENKAI", "EREGL", "FROTO", "GARAN", "GUBRF", "ISCTR", "KCHOL", "KRDMD", "MGROS", "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TOASO", "TRALT", "TTKOM", "TUPRS", "VAKBN", "YKBNK"], "BIST 50": ["AEFES", "AKBNK", "ALARK", "ARCLK", "ASELS", "ASTOR", "BIMAS", "BRSAN", "BTCIM", "CANTE", "CCOLA", "CIMSA", "DOAS", "DSTKF", "EKGYO", "ENKAI", "EREGL", "FROTO", "GARAN", "GUBRF", "HALKB", "HEKTS", "ISCTR", "KCHOL", "KONTR", "KRDMD", "KUYAS", "MAVI", "MGROS", "MIATK", "OYAKC", "PASEU", "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TOASO", "TRALT", "TRMET", "TSKB", "TTKOM", "TUPRS", "TURSG", "ULKER", "VAKBN", "YKBNK"], "BIST 100": ["AEFES", "AGHOL", "AKBNK", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "ASELS", "ASTOR", "BALSU", "BIMAS", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "DSTKF", "ECILC", "EFOR", "EKGYO", "ENERY", "ENJSA", "ENKAI", "EREGL", "EUPWR", "EUREN", "FENER", "FROTO", "GARAN", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GSRAY", "GUBRF", "HALKB", "HEKTS", "ISCTR", "ISMEN", "IZENR", "KCHOL", "KLRHO", "KONTR", "KRDMD", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MGROS", "MIATK", "MPARK", "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PETKM", "PGSUS", "PSGYO", "QUAGR", "RALYH", "REEDR", "SAHOL", "SARKY", "SASA", "SISE", "SKBNK", "SOKM", "TABGD", "TAVHL", "TCELL", "THYAO", "TKFEN", "TOASO", "TRALT", "TRENJ", "TRMET", "TSKB", "TTKOM", "TUKAS", "TUPRS", "TUREX", "TURSG", "ULKER", "VAKBN", "VESTL", "YKBNK", "ZOREN"], "ULASTIRMA": ["BEYAZ", "CLEBI", "GRSEL", "GSDDE", "HOROZ", "HRKET", "PASEU", "PGSUS", "RYSAS", "THYAO", "TLMAN", "TUREX"], "BIST MALI": ["A1CAP", "AAGYO", "ADGYO", "AGESA", "AGHOL", "AGYO", "AHSGY", "AKBNK", "AKFGY", "AKGRT", "AKMGY", "AKSGY", "AKYHO", "ALARK", "ALBRK", "ALGYO", "ANHYT", "ANSGR", "ARSAN", "ASGYO", "ATAGY", "AVGYO", "AVHOL", "AVPGY", "BASGZ", "BEGYO", "BERA", "BINHO", "BRKVY", "BRYAT", "BULGS", "COSMO", "CRDFA", "DENGE", "DERHL", "DGGYO", "DOHOL", "DSTKF", "DUNYH", "DZGYO", "ECILC", "ECZYT", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "GARAN", "GARFA", "GEDIK", "GLBMD", "GLCVY", "GLRYH", "GLYHO", "GOZDE", "GRTHO", "GSDHO", "HALKB", "HDFGS", "HEDEF", "HLGYO", "HUBVC", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHLAS", "IHYAY", "INFO", "INVEO", "INVES", "ISATR", "ISBTR", "ISCTR", "ISFIN", "ISGSY", "ISGYO", "ISMEN", "KCHOL", "KGYO", "KLGYO", "KLRHO", "KRGYO", "KTLEV", "KZBGY", "KZGYO", "LIDFA", "LRSHO", "LXGYO", "LYDHO", "MARKA", "METRO", "MHRGY", "MRGYO", "MSGYO", "MZHLD", "NTHOL", "NUGYO", "OSMEN", "OSTIM", "OTTO", "OYYAT", "OZGYO", "OZKGY", "PAGYO", "PAHOL", "PEKGY", "POLHO", "PRDGS", "PSGYO", "RALYH", "RAYSG", "RYGYO", "SAHOL", "SEGYO", "SEKFK", "SISE", "SKBNK", "SKYMD", "SMRVA", "SNGYO", "SRVGY", "SURGY", "SVGYO", "TAVHL", "TDGYO", "TEHOL", "TERA", "TKFEN", "TRCAS", "TRGYO", "TRHOL", "TSGYO", "TSKB", "TURSG", "UFUK", "ULUFA", "UNLU", "VAKBN", "VAKFA", "VAKFN", "VERTU", "VERUS", "VKGYO", "VRGYO", "YESIL", "YGGYO", "YKBNK", "ZERGY", "ZGYO", "ZRGYO"], "BIST SINAI": ["ACSEL", "ADEL", "AEFES", "AFYON", "AGROT", "AKCNS", "AKHAN", "AKSA", "ALCAR", "ALKA", "ALKIM", "ALKLC", "ALVES", "ANGEN", "ARCLK", "ARMGD", "ARTMS", "ASTOR", "ASUZU", "ATAKP", "AVOD", "AYGAZ", "BAGFS", "BAHKM", "BAKAB", "BALSU", "BANVT", "BARMA", "BAYRK", "BESLR", "BFREN", "BIENY", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORSK", "BOSSA", "BRISA", "BRKSN", "BRSAN", "BSOKE", "BTCIM", "BUCIM", "BURCE", "BURVA", "BVSAN", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CGCAM", "CIMSA", "CMBTN", "CUSAN", "CVKMD", "DAGI", "DARDL", "DERIM", "DESA", "DEVA", "DGNMO", "DITAS", "DMRGD", "DMSAS", "DNISI", "DOFER", "DOGUB", "DOKTA", "DURDO", "DURKN", "DYOBY", "EFOR", "EGEEN", "EGGUB", "EGPRO", "EGSER", "EKOS", "EKSUN", "ELITE", "EMKEL", "ENSRI", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "EUPWR", "EUREN", "FADE", "FMIZP", "FORMT", "FRIGO", "FRMPL", "FROTO", "GEDZA", "GENKM", "GENTS", "GEREL", "GIPTA", "GOKNR", "GOLTS", "GOODY", "GUBRF", "GUNDG", "HATEK", "HATSN", "HEKTS", "HKTM", "IHEVA", "IMASM", "ISDMR", "ISKPL", "ISSEN", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KARTN", "KBORU", "KCAER", "KLKIM", "KLMSN", "KLSER", "KLSYN", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONYA", "KOPOL", "KORDS", "KRDMA", "KRDMB", "KRDMD", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KTSKR", "KUTPO", "LILAK", "LMKDC", "LUKSK", "MAKIM", "MAKTK", "MARBL", "MARMR", "MEDTR", "MEGMT", "MEKAG", "MERCN", "MERKO", "MEYSU", "MNDRS", "MNDTR", "MRSHL", "NIBAS", "NUHCM", "OBAMS", "OFSYM", "ONCSM", "ORCAY", "OTKAR", "OYAKC", "OYLUM", "OZATD", "OZRDN", "OZSUB", "OZYSR", "PARSN", "PENGD", "PETKM", "PETUN", "PINSU", "PNLSN", "PNSUT", "POLTK", "PRKAB", "PRKME", "PRZMA", "QUAGR", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "SAFKR", "SAMAT", "SANFM", "SARKY", "SASA", "SAYAS", "SEGMN", "SEKUR", "SELVA", "SERNT", "SEYKM", "SILVR", "SKTAS", "SNICA", "SOKE", "SUNTK", "TARKM", "TATGD", "TBORG", "TCKRC", "TEZOL", "TMPOL", "TMSN", "TOASO", "TRALT", "TRENJ", "TRILC", "TRMET", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "ULKER", "ULUSE", "ULUUN", "USAK", "VANGD", "VESBE", "VESTL", "VKING", "VSNMD", "YAPRK", "YATAS", "YIGIT", "YKSLN", "YUNSA", "YYLGD"], "BIST TEKNOLOJI": ["ALCTL", "ALTNY", "ARDYZ", "ARENA", "ASELS", "ATATP", "AZTEK", "BINBN", "DESPC", "DGATE", "DOFRB", "EDATA", "EMPAE", "ESCOM", "FONET", "FORTE", "HTTBT", "INDES", "INGRM", "KAREL", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MCARD", "MIATK", "MOBTL", "MTRKS", "NETAS", "NETCD", "OBASE", "ODINE", "ONRYT", "PAPIL", "PATEK", "PENTA", "PKART", "REEDR", "SDTTR", "SMART", "VBTYZ"], "MENKUL KIY YO": ["ATLAS", "ETYAT", "EUKYO", "EUYO", "GRNYO", "ISYAT", "MTRYO", "OYAYO", "VKFYO"], "BANKA": ["AKBNK", "ALBRK", "GARAN", "HALKB", "ICBCT", "ISATR", "ISBTR", "ISCTR", "SKBNK", "TSKB", "VAKBN", "YKBNK"], "BILISIM": ["ALCTL", "ARDYZ", "ARENA", "ATATP", "AZTEK", "BINBN", "DESPC", "DGATE", "DOFRB", "EDATA", "EMPAE", "ESCOM", "FONET", "FORTE", "HTTBT", "INDES", "INGRM", "KAREL", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MCARD", "MIATK", "MOBTL", "MTRKS", "NETAS", "NETCD", "OBASE", "ODINE", "PAPIL", "PATEK", "PENTA", "PKART", "REEDR", "SMART", "VBTYZ"], "ELEKTRIK": ["A1YEN", "AHGAZ", "AKENR", "AKFYE", "AKSEN", "AKSUE", "ALFAS", "ARASE", "ARFYE", "AYDEM", "AYEN", "BESTE", "BIGEN", "BIOEN", "CANTE", "CATES", "CONSE", "CWENE", "ECOGR", "ENDAE", "ENERY", "ENJSA", "ENTRA", "ESEN", "GWIND", "HUNER", "IZENR", "KLYPV", "LYDYE", "MAGEN", "MOGAN", "NATEN", "NTGAZ", "ODAS", "PAMEL", "SMRTG", "TATEN", "ZEDUR", "ZOREN"], "FAKTORING": ["CRDFA", "DSTKF", "GARFA", "ISFIN", "LIDFA", "SEKFK", "ULUFA", "VAKFA", "VAKFN"], "GIDA ICECEK": ["AEFES", "AKHAN", "ALKLC", "ARMGD", "ATAKP", "AVOD", "BALSU", "BANVT", "BESLR", "BORSK", "CCOLA", "CEMZY", "DARDL", "DMRGD", "DURKN", "EFOR", "EKSUN", "ELITE", "ERSU", "FADE", "FRIGO", "GOKNR", "GUNDG", "KAYSE", "KRSTL", "KRVGD", "KTSKR", "MERKO", "MEYSU", "OBAMS", "OFSYM", "ORCAY", "OYLUM", "PENGD", "PETUN", "PINSU", "PNSUT", "GRID", "SEGMN", "SELVA", "SOKE", "TATGD", "TBORG", "TUKAS", "ULKER", "ULUUN", "VANGD", "YYLGD"], "GAYRIMENKUL YO": ["AAGYO", "ADGYO", "AGYO", "AHSGY", "AKFGY", "AKMGY", "AKSGY", "ALGYO", "ASGYO", "ATAGY", "AVGYO", "AVPGY", "BASGZ", "BEGYO", "DGGYO", "DZGYO", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "HLGYO", "IDGYO", "ISGYO", "KGYO", "KLGYO", "KRGYO", "KZBGY", "KZGYO", "LXGYO", "MHRGY", "MRGYO", "MSGYO", "NUGYO", "OZGYO", "OZKGY", "PAGYO", "PEKGY", "PSGYO", "RYGYO", "SEGYO", "SNGYO", "SRVGY", "SURGY", "SVGYO", "TDGYO", "TRGYO", "TSGYO", "VKGYO", "VRGYO", "YGGYO", "ZERGY", "ZGYO", "ZRGYO"], "BIST 100-30": ["AGHOL", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "BALSU", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "ECILC", "EFOR", "ENERY", "ENJSA", "EUPWR", "EUREN", "FENER", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GSRAY", "HALKB", "HEKTS", "ISMEN", "IZENR", "KLRHO", "KONTR", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MIATK", "MPARK", "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PSGYO", "QUAGR", "RALYH", "REEDR", "SARKY", "SKBNK", "SOKM", "TABGD", "TKFEN", "TRENJ", "TRMET", "TSKB", "TUKAS", "TUREX", "TURSG", "ULKER", "VESTL", "ZOREN"], "MADENCILIK": ["CVKMD", "PRKME", "RUZYE", "TRALT", "TRENJ", "TRMET", "VSNMD"], "BIST SURD": ["AEFES", "AGESA", "AGHOL", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKGRT", "AKSA", "AKSEN", "AKSGY", "ALARK", "ALBRK", "ANHYT", "ANSGR", "ARCLK", "ASELS", "ASUZU", "AYDEM", "AYGAZ", "BESLR", "BIMAS", "BIOEN", "BIZIM", "BRISA", "BSOKE", "BTCIM", "CCOLA", "CIMSA", "CONSE", "DGNMO", "DOAS", "DOCO", "DOHOL", "ENJSA", "ENKAI", "EREGL", "ESEN", "FROTO", "GARAN", "GLYHO", "GRSEL", "GWIND", "HALKB", "HEKTS", "HTTBT", "ISATR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGYO", "ISMEN", "KARSN", "KCHOL", "KLKIM", "KLSER", "KMPUR", "KONTR", "KORDS", "LOGO", "MAGEN", "MAVI", "MGROS", "MPARK", "NATEN", "NUHCM", "OTKAR", "OYAKC", "PETKM", "PGSUS", "POLHO", "QUAGR", "SAHOL", "SASA", "SISE", "SKBNK", "SMRTG", "SOKM", "SUNTK", "TATGD", "TAVHL", "TCELL", "THYAO", "TKFEN", "TKNSA", "TOASO", "TSKB", "TTKOM", "TTRAK", "TUPRS", "TURSG", "ULKER", "VAKBN", "VESBE", "VESTL", "VKGYO", "YKBNK", "YUNSA", "ZOREN"], "ISBANK ISTIRAK": ["ANHYT", "ANSGR", "ISCTR", "ISFIN", "ISGSY", "ISGYO", "ISMEN", "ISYAT", "SISE", "TSGYO", "TSKB"], "TEMETTU 25": ["AGHOL", "AKBNK", "AKSA", "ALARK", "ANHYT", "BIMAS", "BRYAT", "CCOLA", "CIMSA", "DOAS", "DOHOL", "ECILC", "ENKAI", "EREGL", "FROTO", "GARAN", "ISCTR", "ISMEN", "KCHOL", "MAVI", "MGROS", "TCELL", "TOASO", "TUPRS", "TURSG"], "BIST TEMETTU": ["AEFES", "AFYON", "AGESA", "AGHOL", "AKBNK", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ARASE", "ARDYZ", "ASELS", "ASTOR", "ASUZU", "ATATP", "AYEN", "AYGAZ", "AZTEK", "BASGZ", "BIMAS", "BRKVY", "BRYAT", "CCOLA", "CIMSA", "CLEBI", "DOAS", "DOHOL", "EBEBK", "ECILC", "ECZYT", "EGGUB", "EGPRO", "ELITE", "EMPAE", "ENKAI", "EREGL", "FROTO", "GARAN", "GEDIK", "GENIL", "GLCVY", "GLYHO", "GOLTS", "GRSEL", "GWIND", "ISATR", "ISBTR", "ISCTR", "ISDMR", "ISMEN", "JANTS", "KCAER", "KCHOL", "KFEIN", "KLKIM", "KTLEV", "LIDER", "LILAK", "LKMNH", "LOGO", "MACKO", "MAVI", "MCARD", "MERIT", "MGROS", "MTRKS", "NTGAZ", "NUHCM", "PAGYO", "PCILT", "PLTUR", "PNLSN", "PSGYO", "SARKY", "SISE", "SMRVA", "SUNTK", "SUWEN", "TCELL", "TGSAS", "TOASO", "TRGYO", "TUPRS", "TURSG", "ULUFA", "VAKKO", "YAPRK", "YUNSA", "ZRGYO"], "ARACI KURUMLAR": ["A1CAP", "GEDIK", "GLBMD", "INFO", "ISMEN", "OSMEN", "OYYAT", "SKYMD", "TERA"], "INSAAT": ["AKFIS", "ANELE", "BRLSM", "DAPGM", "EDIP", "ENKAI", "GESAN", "GLRMK", "KUYAS", "ORGE", "SANEL", "TURGG", "UCAYM", "YAYLA"], "KOBI SANAYI": ["BAYRK", "BURVA", "DNISI", "DOGUB", "ERSU", "IZFAS", "IZINV", "LUKSK", "NIBAS", "ONCSM", "ORCAY", "OZRDN", "POLTK", "PRZMA", "RODRG", "RTALB", "RUZYE", "SAMAT", "SEYKM", "VANGD", "YAPRK"], "BIST ANA": ["A1YEN", "ACSEL", "ADEL", "ADESE", "AFYON", "AHSGY", "AKENR", "AKHAN", "AKMGY", "AKSUE", "ALCAR", "ALCTL", "ALKA", "ALKIM", "ALKLC", "ALVES", "ANELE", "ANGEN", "ARENA", "ARFYE", "ARSAN", "ARTMS", "ARZUM", "ASUZU", "AVGYO", "AVHOL", "AVOD", "AYCES", "AYEN", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BANVT", "BAYRK", "BEGYO", "BESTE", "BEYAZ", "BIGCH", "BIGTK", "BIZIM", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORSK", "BOSSA", "BRKVY", "BRLSM", "BULGS", "BURCE", "BVSAN", "BYDNR", "CATES", "CELHA", "CEMAS", "CEMTS", "CEOEM", "CGCAM", "CMBTN", "CONSE", "CRFSA", "CUSAN", "DAGI", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DGATE", "DGNMO", "DITAS", "DMRGD", "DMSAS", "DNISI", "DOCO", "DOFER", "DOKTA", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EDATA", "EDIP", "EGEGY", "EGEPO", "EGSER", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMPAE", "ENDAE", "ENSRI", "EPLAS", "ERBOS", "ERCB", "ESCOM", "ETILR", "EYGYO", "FADE", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "GARFA", "GEDZA", "GENKM", "GEREL", "GLRYH", "GOODY", "GSDDE", "GSDHO", "GUNDG", "GZNMI", "HATEK", "HDFGS", "HEDEF", "HKTM", "HOROZ", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IHAAS", "IHGZT", "IHLGM", "IHYAY", "IMASM", "INFO", "INGRM", "INTEM", "ISGSY", "ISSEN", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KARTN", "KBORU", "KFEIN", "KGYO", "KIMMR", "KLMSN", "KLSYN", "KNFRT", "KONKA", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KTSKR", "KUTPO", "KZGYO", "LIDFA", "LKMNH", "LUKSK", "LXGYO", "LYDYE", "MAALT", "MACKO", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MCARD", "MEDTR", "MEKAG", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MHRGY", "MNDRS", "MNDTR", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "NETAS", "NETCD", "NIBAS", "NUGYO", "OBASE", "OFSYM", "ONCSM", "ONRYT", "OSMEN", "OSTIM", "OTTO", "OZGYO", "OZSUB", "OZYSR", "PAMEL", "PCILT", "PEKGY", "PENGD", "PENTA", "PETUN", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "PRDGS", "PRKAB", "PRKME", "PRZMA", "RAYSG", "RTALB", "RUBNS", "RUZYE", "SAFKR", "SANFM", "SANKO", "SAYAS", "SEGMN", "SEGYO", "SELVA", "SERNT", "SKTAS", "SKYMD", "SMART", "SMRVA", "SNICA", "SOKE", "SVGYO", "TARKM", "TATGD", "TBORG", "TEHOL", "TEKTU", "TERA", "TGSAS", "TKNSA", "TLMAN", "TMPOL", "TRILC", "TSGYO", "TUCLK", "TURGG", "UCAYM", "UFUK", "ULUFA", "ULUSE", "ULUUN", "UNLU", "VBTYZ", "VERTU", "VERUS", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YESIL", "YIGIT", "YKSLN", "YUNSA", "ZEDUR", "ZGYO"], "BIST HALKA ARZ": ["AAGYO", "AHSGY", "AKFIS", "AKHAN", "ALKLC", "ALTNY", "ARFYE", "ARMGD", "ATATR", "BAHKM", "BALSU", "BESTE", "BIGEN", "BINBN", "BULGS", "CEMZY", "CGCAM", "DCTTR", "DOFRB", "DSTKF", "DURKN", "ECOGR", "EFOR", "EGEGY", "EMPAE", "ENDAE", "FRMPL", "GENKM", "GLRMK", "GUNDG", "HOROZ", "HRKET", "KLYPV", "KOCMT", "KOTON", "LILAK", "LXGYO", "MCARD", "MEYSU", "MOPAS", "NETCD", "ONRYT", "OZATD", "OZYSR", "PAHOL", "SEGMN", "SERNT", "SMRVA", "SVGYO", "TCKRC", "UCAYM", "VAKFA", "VSNMD", "YIGIT", "ZERGY", "ZGYO"], "HALKBANK SURD-30": ["AEFES", "ALARK", "ANSGR", "ARCLK", "ASELS", "BSOKE", "CCOLA", "CIMSA", "DOHOL", "ENJSA", "ENKAI", "FROTO", "GARAN", "HALKB", "ISCTR", "KCHOL", "MAGEN", "MAVI", "MGROS", "SAHOL", "SISE", "SOKM", "TCELL", "THYAO", "TSKB", "TTRAK", "ULKER", "VESTL", "YKBNK", "ZOREN"], "OSMANLI DEGER-25": ["AEFES", "AGHOL", "ARDYZ", "ATATP", "CLEBI", "DOCO", "DOHOL", "EKGYO", "GLYHO", "GRSEL", "KLKIM", "LOGO", "MAVI", "MGROS", "MPARK", "PGSUS", "RYGYO", "TAVHL", "TCELL", "TEHOL", "THYAO", "TRENJ", "TRGYO", "TTKOM", "YEOTK"], "TEMETTU 10 YIL": ["ADEL", "AEFES", "AGHOL", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ASELS", "AYGAZ", "BIMAS", "BRYAT", "CCOLA", "CEMTS", "ECILC", "ECZYT", "EGEEN", "EGGUB", "ENKAI", "FROTO", "ISMEN", "JANTS", "KCHOL", "LKMNH", "NUHCM", "PAGYO", "SAHOL", "SARKY", "SELEC", "SISE", "TOASO", "VESBE", "YGGYO"], "TEMETTU 5 YIL": ["ADEL", "AEFES", "AGHOL", "AKBNK", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ARDYZ", "ASELS", "AYGAZ", "BEYAZ", "BIMAS", "BRISA", "BRYAT", "CCOLA", "CEMTS", "DOAS", "DOHOL", "ECILC", "ECZYT", "EGEEN", "EGGUB", "EGPRO", "ENJSA", "ENKAI", "FROTO", "GARAN", "GENTS", "GOLTS", "ISATR", "ISBTR", "ISCTR", "ISMEN", "JANTS", "KCHOL", "KFEIN", "LKMNH", "LOGO", "MAVI", "MERCN", "MSGYO", "MTRKS", "NTGAZ", "NUHCM", "OSMEN", "PAGYO", "SAHOL", "SARKY", "SELEC", "SISE", "TCELL", "TOASO", "TTRAK", "TURSG", "VAKKO", "VESBE", "YAPRK", "YGGYO", "YUNSA"], "Aracı Kurumlar": ["A1CAP", "GEDIK", "GLBMD", "INFO", "ISMEN", "OSMEN", "OYYAT", "SKYMD", "TERA", "UNLU"], "Bankacılık": ["AKBNK", "ALBRK", "GARAN", "HALKB", "ICBCT", "ISATR", "ISBTR", "ISCTR", "ISKUR", "KLNMA", "QNBTR", "SKBNK", "TSKB", "VAKBN", "YKBNK"], "Bilgisayar Topt": ["ARENA", "DESPC", "DGATE", "HTTBT", "INDES", "INGRM", "PENTA"], "Boya": ["DYOBY", "EMNIS", "IZFAS", "MRSHL"], "Cam": ["CGCAM", "SISE"], "Yabancı Ortak": ["ADEL", "AEFES", "AGESA", "AKCNS", "AKGRT", "AKMGY", "ALCAR", "ALCTL", "ASUZU", "AYGAZ", "BANVT", "BASCM", "BFREN", "BRISA", "CCOLA", "CMENT", "CONSE", "CRFSA", "DMRGD", "DURDO", "EGPRO", "FROTO", "GMTAS", "GOKNR", "ICBCT", "IZINV", "KENT", "KLSER", "KLSYN", "KMPUR", "KONYA", "KOTON", "KRGYO", "MNDTR", "MPARK", "MRSHL", "NETAS", "NETCD", "ORGE", "OYAKC", "OZRDN", "PKART", "POLTK", "PRKAB", "QNBTR", "RAYSG", "RYSAS", "SKBNK", "SOKM", "TAVHL", "TBORG", "TCELL", "TOASO", "TTRAK", "ULKER", "VERUS"], "Dayanıklı Tüketim": ["ALCAR", "ARCLK", "ARZUM", "IHEVA", "KLMSN", "SAFKR", "SNICA", "VESBE", "VESTL"], "Demir-Çelik Döküm": ["BMSCH", "BMSTL", "BURCE", "CEMAS", "CUSAN", "DMSAS", "ERBOS", "EUREN"], "Demir-Çelik Temel": ["BRSAN", "CELHA", "CEMTS", "DOFER", "ERCB", "EREGL", "ISDMR", "IZMDC", "KCAER", "KOCMT", "KRDMA", "KRDMB", "KRDMD", "OZYSR", "YKSLN"], "Deri Giyim": ["DERHL", "DERIM", "DESA", "ENSRI"], "Elektrik-Gaz Dağ": ["AHGAZ", "ARASE", "BASGZ", "ENERY", "ENJSA"], "Elektrik Kurulum": ["ALFAS", "ASTOR", "CWENE", "EMKEL", "EUPWR", "GESAN", "KLYPV", "KONTR", "MAGEN", "MOGAN", "NATEN", "ORGE", "SAYAS", "SMRTG", "ULUSE"], "Elektrik Üretim": ["A1YEN", "AKENR", "AKFYE", "AKSEN", "AKSUE", "ARFYE", "AYDEM", "AYEN", "BIGEN", "BIOEN", "CANTE", "CATES", "CONSE", "ECOGR", "ENDAE", "ENTRA", "ESEN", "GWIND", "HUNER", "IZENR", "ODAS", "PAMEL", "TATEN", "TRENJ", "YAYLA", "ZEDUR", "ZOREN"], "Makine-Teçhizat Üretim": ["EKOS", "HKTM", "HRKET", "IMASM", "MAKIM", "OZATD", "SANEL", "SILVR"], "Endüstriyel Tekstil": ["AKSA", "KOPOL", "KORDS", "SASA"], "Fin.Kira Faktoring": ["CRDFA", "DSTKF", "GARFA", "ISFIN", "LIDFA", "QNBFK", "SEKFK", "UFUK", "ULUFA", "VAKFA", "VAKFN"], "GYO": ["ADESE", "ADGYO", "AGYO", "AHSGY", "AKFGY", "AKMGY", "AKSGY", "ALGYO", "ASGYO", "ATAGY", "AVGYO", "AVPGY", "BEGYO", "DAPGM", "DGGYO", "DZGYO", "EDIP", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "HLGYO", "IDGYO", "IHLGM", "ISGYO", "KGYO", "KLGYO", "KRGYO", "KZBGY", "KZGYO", "MHRGY", "MRGYO", "MSGYO", "NUGYO", "OZGYO", "OZKGY", "PAGYO", "PEKGY", "PSGYO", "RYGYO", "SEGYO", "SNGYO", "SRVGY", "SURGY", "TDGYO", "TRGYO", "TSGYO", "TURGG", "VKGYO", "VRGYO", "YGGYO", "YGYO", "ZERGY", "ZGYO", "ZRGYO"], "Gıda": ["ALKLC", "ARMGD", "ATAKP", "AVOD", "BALSU", "BESLR", "BIGCH", "BORSK", "BYDNR", "CEMZY", "DARDL", "DMRGD", "DUNYH", "DURKN", "EFOR", "EKIZ", "EKSUN", "ELITE", "ETILR", "FADE", "FRIGO", "GOKNR", "GUNDG", "IZINV", "KAYSE", "KENT", "KRVGD", "KTSKR", "KUVVA", "LYDYE", "MERKO", "MEYSU", "OBAMS", "OFSYM", "OTTO", "OYLUM", "PENGD", "PETUN", "SEGMN", "SELVA", "SOKE", "TABGD", "TATGD", "TUKAS", "ULKER", "ULUUN", "VANGD", "YAPRK", "YYLGD"], "Havayolları ve Hizm.": ["CLEBI", "PGSUS", "TAVHL", "THYAO"], "Hayvancılık": ["BANVT", "OZSUB"], "Holdingler": ["AGHOL", "AKYHO", "ALARK", "ATSYH", "AVHOL", "BERA", "BINHO", "BRYAT", "COSMO", "DENGE", "DOHOL", "ECZYT", "EUHOL", "GLRYH", "GLYHO", "GSDHO", "HEDEF", "IEYHO", "IHLAS", "INVEO", "INVES", "ISBIR", "KCHOL", "KERVN", "KLRHO", "LRSHO", "LYDHO", "MARKA", "METRO", "MMCAS", "NTHOL", "PAHOL", "POLHO", "SAHOL", "TEHOL", "TRHOL", "VERUS", "YESIL"], "Kablo": ["ALVES", "GEREL", "PRKAB"], "Kağıt Ürünleri": ["ALKA", "BAKAB", "BARMA", "DURDO", "KAPLM", "KARTN", "KONKA", "KRPLS", "LILAK", "MNDTR", "ORMA", "PRZMA", "SAMAT", "TEZOL", "VKING"], "Kimyasal Ürün": ["ACSEL", "ALKIM", "BAHKM", "BNTAS", "FRMPL", "GEDZA", "ISKPL", "KMPUR", "MARMR", "MERCN", "OZRDN", "POLTK", "RNPOL", "SANFM", "SEKUR", "SEYKM", "SODSN", "TMPOL"], "Kırtasiye": ["ADEL", "GIPTA"], "Madencilik": ["CVKMD", "MARBL", "PRKME", "RUZYE", "TRALT", "TRMET", "VSNMD"], "Medya": ["BIGTK", "CEOEM", "HURGZ", "IHAAS", "IHGZT", "IHYAY", "PCILT"], "Meşrubat İçecek": ["AEFES", "CCOLA", "ERSU", "KNFRT", "KRSTL", "ORCAY", "PINSU", "PNSUT", "TBORG"], "Mobilya": ["DGNMO", "GENTS", "KLSYN", "SUMAS", "YATAS", "YONGA"], "Otomotiv": ["ASUZU", "DOAS", "FROTO", "KARSN", "OTKAR", "TMSN", "TOASO", "TTRAK"], "Otomotiv Lastiği": ["BRISA", "GOODY"], "Otomotiv Parçası": ["BALAT", "BFREN", "DITAS", "DOKTA", "EGEEN", "FMIZP", "JANTS", "KATMR", "PARSN", "TUCLK", "YIGIT"], "Pazarlama": ["SANKO", "TGSAS"], "Perakande - Ticaret": ["BIMAS", "BIZIM", "CASA", "CRFSA", "EBEBK", "GMTAS", "GRTHO", "KIMMR", "MGROS", "MOPAS", "PSDTC", "SOKM", "TKNSA", "VAKKO"], "Petrol": ["AYGAZ", "MEPET", "NTGAZ", "PETKM", "TRCAS", "TUPRS"], "Savunma": ["ALTNY", "ASELS", "ONRYT", "SDTTR"], "Sağlık ve İlaç": ["ANGEN", "DEVA", "ECILC", "EGEPO", "GENIL", "LKMNH", "MEDTR", "MPARK", "ONCSM", "RTALB", "SELEC", "TNZTP", "TRILC"], "Seramik": ["BIENY", "EGSER", "KLKIM", "KLSER", "KUTPO", "USAK"], "Sigorta": ["AGESA", "AKGRT", "ANHYT", "ANSGR", "RAYSG", "TURSG"], "Spor": ["BJKAS", "FENER", "GSRAY", "TSPOR"], "Tarım Kimya": ["BAGFS", "EGGUB", "GUBRF", "HEKTS", "TARKM"], "Teknoloji": ["ARDYZ", "ATATP", "AZTEK", "DOFRB", "EDATA", "ESCOM", "FONET", "FORTE", "INTEK", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MIATK", "MTRKS", "OBASE", "ODINE", "PAPIL", "PATEK", "PKART", "SMART", "VBTYZ"], "Tekstil Entegre": ["ARSAN", "ARTMS", "ATEKS", "BAYRK", "BLCYT", "BOSSA", "BRKO", "BRMEN", "DAGI", "DIRIT", "HATEK", "ISSEN", "KOTON", "KRTEK", "LUKSK", "MAVI", "MEGAP", "MNDRS", "RALYH", "RODRG", "RUBNS", "SKTAS", "SNPAM", "SONME", "SUNTK", "SUWEN", "YUNSA"], "Turizm": ["AVTUR", "AYCES", "BLUME", "GZNMI", "KSTUR", "MAALT", "MARTI", "MERIT", "PKENT", "TEKTU", "ULAS"], "Ulaştırma-Loj": ["BEYAZ", "BINBN", "BORLS", "DOCO", "ESCAR", "GRSEL", "GSDDE", "HATSN", "HOROZ", "LIDER", "PASEU", "PLTUR", "RYSAS", "TLMAN", "TUREX"], "Varlık Yönetim": ["BRKVY", "GLCVY", "SMRVA"], "Yatırım Ortaklıkları": ["ATLAS", "BULGS", "ETYAT", "EUKYO", "EUYO", "GOZDE", "GRNYO", "HDFGS", "HUBVC", "ICUGS", "ISGSY", "ISYAT", "MTRYO", "OYAYO", "PRDGS", "VERTU", "VKFYO"], "Çimento": ["AFYON", "AKCNS", "BASCM", "BOBET", "BSOKE", "BTCIM", "BUCIM", "CIMSA", "CMBTN", "CMENT", "GOLTS", "KONYA", "LMKDC", "NIBAS", "NUHCM", "OYAKC"], "İletişim": ["MOBTL", "TCELL", "TTKOM"], "İletişim Cihaz": ["ALCTL", "KAREL", "NETAS", "REEDR"], "İnşaat Malz": ["ANELE", "AYES", "BRKSN", "BRLSM", "BURVA", "BVSAN", "DNISI", "DOGUB", "EGPRO", "EPLAS", "FORMT", "INTEM", "KBORU", "MAKTK", "MEGMT", "MEKAG", "MZHLD", "PNLSN", "QUAGR", "SARKY", "SERNT", "YBTAS"], "İnşaat-Taahhüt": ["AKFIS", "ENKAI", "GLRMK", "KUYAS", "TKFEN", "YEOTK", "YYAPI"], "BIST Temettü 25": ["AGHOL", "AKBNK", "AKSA", "ALARK", "ANHYT", "ASTOR", "BIMAS", "BRYAT", "CCOLA", "DOAS", "DOHOL", "ENKAI", "FROTO", "GARAN", "ISCTR", "ISMEN", "KCHOL", "MAVI", "MGROS", "SISE", "TCELL", "TOASO", "TTRAK", "TUPRS", "TURSG"], "Küçük Sermaye": ["DIRIT", "EMNIS", "EUYO", "YONGA", "GLBMD", "SNPAM", "ATAGY", "IDGYO", "BRMEN", "ETYAT", "EUKYO", "AGYO", "KRTEK", "SODSN", "RODRG", "MTRYO", "CASA", "SANKO", "CUSAN", "VKING", "MZHLD", "INTEK", "ATEKS", "DESPC", "SILVR", "TSGYO", "LUKSK", "VKFYO", "YBTAS", "AKYHO", "EKIZ", "SANEL", "OYLUM", "SONME", "ATSYH", "BAKAB", "AVTUR", "OYAYO", "CEOEM", "DERIM", "SUMAS", "BRKSN", "IHEVA", "SAMAT", "DGGYO", "MEGAP", "OBASE", "QNBFK", "ATLAS", "ERSU", "ORMA", "IHYAY", "DOFER", "ORCAY", "SEKFK", "YKSLN", "FADE", "ULAS", "ZEDUR", "PAMEL", "GRNYO", "EYGYO", "BASCM", "ISSEN", "KNFRT", "INTEM", "ACSEL", "IHGZT", "SKYMD", "KENT", "KRPLS", "KRGYO", "HATEK", "AVGYO", "MAKIM", "BEYAZ", "MEDTR", "PSDTC", "OZGYO", "CMENT", "GSDDE", "BIZIM", "VERTU", "GEDZA", "EGSER", "TLMAN", "DOKTA", "BYDNR", "MARBL", "KERVN", "UNLU", "DURDO", "ARTMS", "SEYKM", "MEPET", "ANGEN", "KLNMA", "HUBVC", "ETILR", "DZGYO", "RNPOL", "KLMSN", "IZINV", "DURKN", "FLAP", "EPLAS", "COSMO", "ISYAT", "PRKME", "BAYRK", "FMIZP", "PRDGS", "PNLSN", "SERNT", "BNTAS", "DMSAS", "AKMGY", "INGRM", "GARFA", "OSMEN", "YESIL", "MTRKS", "MSGYO", "KUTPO", "EKSUN", "HKTM", "SEGYO", "MHRGY", "HURGZ", "MMCAS", "BOSSA", "MNDTR", "CELHA", "AVHOL", "ICBCT", "DNISI", "SKTAS", "ARZUM", "SEKUR", "BALAT", "GOODY", "YAYLA", "SMART", "TDGYO", "KIMMR", "MARKA", "PINSU", "TURGG", "BMSCH", "PKART", "AVOD", "KZGYO", "TUCLK", "MEKAG", "RUBNS", "AZTEK", "OZSUB", "DGATE", "KONKA", "BEGYO", "ISBIR", "EDIP", "VBTYZ", "ENPRA", "PKENT", "ELITE", "ULUSE", "ULUFA", "DAGI", "CONSE", "YAPRK", "BANVT", "OFSYM", "DESA", "ONRYT", "PETUN", "CATES", "ALCAR", "SNICA", "KLSYN", "OZRDN", "DENGE", "MACKO", "PRKAB", "KFEIN", "PLTUR", "FRMPL", "OZYSR", "PCILT", "RTALB", "INVEO", "DYOBY", "OTTO", "MERKO", "OSTIM", "BRKVY", "VRGYO", "ATAKP", "MAKTK", "ZGYO", "MERIT", "GEDIK", "LIDFA", "KOPOL", "KRSTL", "QNBTR", "BIGTK", "BRKO", "ARFYE", "KOCMT", "NIBAS", "ALKA", "BESTE", "ENSRI", "AKHAN", "BLCYT", "AYCES", "NETAS", "NUGYO", "DARDL", "BVSAN", "EMPAE", "PNSUT", "EUHOL", "YUNSA", "GLCVY", "KOTON", "SANFM", "AYEN", "DGNMO", "BRLSM", "IHLGM", "ALCTL", "BIGCH", "DOGUB", "HOROZ", "KTSKR", "A1YEN", "MNDRS", "DERHL", "VAKKO", "MERCN", "CGCAM", "RAYSG", "UCAYM", "YYAPI", "GENKM", "SKYLP", "ARENA", "KRVGD", "DITAS", "AKENR", "ASGYO", "TGSAS", "SELVA", "YGYO", "INFO", "HRKET", "TATGD", "GLRYH", "EGEPO", "ENDAE", "DCTTR", "SOKE", "PRZMA", "BIENY"], "Tüm 500'ler": ["AHGAZ", "AKCNS", "AKFYE", "AKSA", "AKSEN", "ALFAS", "ALKA", "ALKIM", "ALKLC", "ARCLK", "ARENA", "ARMDA", "ARMGD", "ARZUM", "ASELS", "ASTOR", "ASUZU", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAKAB", "BANVT", "BARMA", "BASGZ", "BIENY", "BIMAS", "BIZIM", "BOBET", "BORSK", "BRISA", "BRLSM", "BRSAN", "BSOKE", "BTCIM", "BUCIM", "CARES", "CCOLA", "CELHA", "CEMTS", "CIMSA", "CLEBI", "CRFSA", "CWENE", "DARDL", "DEVA", "DGNMO", "DOAS", "DOKTA", "DYOBY", "EBEBK", "ECILC", "EFORC", "EGEEN", "EGPRO", "EGSER", "EKSUN", "ENERY", "ENJSA", "ENKAI", "ERBOS", "ERCB", "EREGL", "EUPWR", "EUREN", "FROTO", "GENIL", "GESAN", "GLRMK", "GOKNR", "GOLTS", "GOODY", "GRSEL", "GUBRF", "HEKTS", "HOROZ", "INDES", "ISDMR", "ISSEN", "IZDMR", "IZENR", "JANTS", "KAREL", "KARSN", "KAYSE", "KCAER", "KENT", "KERVT", "KLKIM", "KLSER", "KLYPV", "KMPUR", "KOCMT", "KONKA", "KONYA", "KOPOL", "KORDS", "KORDSA", "KOTON", "KOZAL", "KRDMD", "KRTEK", "KRVGD", "LILAK", "LMKDC", "MAKIM", "MAVI", "MEGMT", "MGMTL", "MGROS", "MNDTR", "MOGAN", "MOPAS", "NTGAZ", "NUHCM", "OBAMS", "ODAS", "OFSYM", "OTKAR", "OYAKC", "OZRDN", "OZYSR", "PARSN", "PCILT", "PENTA", "PETKM", "PETUN", "PGSUS", "PNLSN", "PNSUT", "QUAGR", "RYSAS", "SARKY", "SASA", "SELEC", "SERNT", "SISE", "SMRTG", "SNICA", "SOKE", "SOKM", "SUNTK", "TABGD", "TATGD", "TAVHL", "TCELL", "TEZOL", "THYAO", "TKFEN", "TKNSA", "TMSN", "TOASO", "TRILC", "TTCOM", "TTKOM", "TTRAK", "TUKAS", "TUPRS", "ULKER", "ULUUN", "USAK", "VAKKO", "VESBE", "VESTL", "YATAS", "YEOTK", "YIGIT", "YUNSA", "YYLGD", "ZOREN"], "GÖZDE": ["LMKDC", "LILAK", "BORSK", "VAKKO", "BYDNR", "BOBET", "KMPUR", "DGNMO", "PNLSN", "KOCMT", "KOTON", "RUBNS", "KLSER", "GESAN", "EUPWR", "SNICA", "AGROT", "BINHO", "TUPRS", "EREGL", "VESBE", "TTRAK", "CLEBI", "AVPGY", "DOAS", "KCHOL", "AKSA", "ANHYT", "NUHCM", "EGPRO", "AYEN"], "Elimdekiler": ["LMKDC", "LILAK", "AVPGY", "KMPUR", "DOAS", "TTRAK", "CLEBI"]};
+        const symbolLists = {"Tüm Hisseler": ["A1CAP", "A1YEN", "ACSEL", "ADEL", "ADESE", "ADGYO", "AEFES", "AFYON", "AGESA", "AGHOL", "AGROT", "AGYO", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKFYE", "AKGRT", "AKHAN", "AKMGY", "AKSA", "AKSEN", "AKSGY", "AKSUE", "AKYHO", "ALARK", "ALBRK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKA", "ALKIM", "ALKLC", "ALTINS1", "ALTNY", "ALVES", "ANELE", "ANGEN", "ANHYT", "ANSGR", "ARASE", "ARCLK", "ARDYZ", "ARENA", "ARFYE", "ARMGD", "ARSAN", "ARTMS", "ARZUM", "ASELS", "ASGYO", "ASTOR", "ASUZU", "ATAGY", "ATAKP", "ATATP", "ATATR", "ATEKS", "ATLAS", "ATSYH", "AVGYO", "AVHOL", "AVOD", "AVPGY", "AVTUR", "AYCES", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BALAT", "BALSU", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BEGYO", "BERA", "BESLR", "BESTE", "BEYAZ", "BFREN", "BIENY", "BIGCH", "BIGEN", "BIGTK", "BIMAS", "BINBN", "BINHO", "BIOEN", "BIZIM", "BJKAS", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORLS", "BORSK", "BOSSA", "BRISA", "BRKO", "BRKSN", "BRKVY", "BRLSM", "BRMEN", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "BUCIM", "BULGS", "BURCE", "BURVA", "BVSAN", "BYDNR", "CANTE", "CASA", "CATES", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CEOEM", "CGCAM", "CIMSA", "CLEBI", "CMBTN", "CMENT", "CONSE", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CVKMD", "CWENE", "DAGI", "DAPGM", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DGATE", "DGGYO", "DGNMO", "DIRIT", "DITAS", "DMLKTG", "DMRGD", "DMSAS", "DNISI", "DOAS", "DOCO", "DOFER", "DOFRB", "DOGUB", "DOHOL", "DOKTA", "DSTKF", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EBEBK", "ECILC", "ECOGR", "ECZYT", "EDATA", "EDIP", "EFOR", "EGEEN", "EGEGY", "EGEPO", "EGGUB", "EGPRO", "EGSER", "EKGYO", "EKIZ", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMNIS", "EMPAE", "ENDAE", "ENERY", "ENJSA", "ENKAI", "ENSRI", "ENTRA", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "ESCAR", "ESCOM", "ESEN", "ETILR", "ETYAT", "EUHOL", "EUKYO", "EUPWR", "EUREN", "EUYO", "EYGYO", "FADE", "FENER", "FLAP", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "FROTO", "FZLGY", "GARAN", "GARFA", "GATEG", "GEDIK", "GEDZA", "GENIL", "GENKM", "GENTS", "GEREL", "GESAN", "GIPTA", "GLBMD", "GLCVY", "GLRMK", "GLRYH", "GLYHO", "GMTAS", "GOKNR", "GOLTS", "GOODY", "GOZDE", "GRNYO", "GRSEL", "GRTHO", "GSDDE", "GSDHO", "GSRAY", "GUBRF", "GUNDG", "GWIND", "GZNMI", "HALKB", "HATEK", "HATSN", "HDFGS", "HEDEF", "HEKTS", "HKTM", "HLGYO", "HOROZ", "HRKET", "HTTBT", "HUBVC", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHAAS", "IHEVA", "IHGZT", "IHLAS", "IHLGM", "IHYAY", "IMASM", "INDES", "INFO", "INGRM", "INTEK", "INTEM", "INVEO", "INVES", "ISATR", "ISBIR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGSY", "ISGYO", "ISKPL", "ISKUR", "ISMEN", "ISSEN", "ISYAT", "IZENR", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KBORU", "KCAER", "KCHOL", "KENT", "KERVN", "KFEIN", "KGYO", "KIMMR", "KLGYO", "KLKIM", "KLMSN", "KLNMA", "KLRHO", "KLSER", "KLSYN", "KLYPV", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONTR", "KONYA", "KOPOL", "KORDS", "KOTON", "KRDMA", "KRDMB", "KRDMD", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KSTUR", "KTLEV", "KTSKR", "KUTPO", "KUVVA", "KUYAS", "KZBGY", "KZGYO", "LIDER", "LIDFA", "LILAK", "LINK", "LKMNH", "LMKDC", "LOGO", "LRSHO", "LUKSK", "LXGYO", "LYDHO", "LYDYE", "MAALT", "MACKO", "MAGEN", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MAVI", "MCARD", "MEDTR", "MEGAP", "MEGMT", "MEKAG", "MEPET", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MGROS", "MHRGY", "MIATK", "MMCAS", "MNDRS", "MNDTR", "MOBTL", "MOGAN", "MOPAS", "MPARK", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "MTRYO", "MZHLD", "NATEN", "NETAS", "NETCD", "NIBAS", "NTGAZ", "NTHOL", "NUGYO", "NUHCM", "OBAMS", "OBASE", "ODAS", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORCAY", "ORGE", "ORMA", "OSMEN", "OSTIM", "OTKAR", "OTTO", "OYAKC", "OYAYO", "OYLUM", "OYYAT", "OZATD", "OZGYO", "OZKGY", "OZRDN", "OZSUB", "OZYSR", "PAGYO", "PAHOL", "PAMEL", "PAPIL", "PARSN", "PASEU", "PATEK", "PCILT", "PEKGY", "PENGD", "PENTA", "PETKM", "PETUN", "PGSUS", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "POLHO", "POLTK", "PRDGS", "PRKAB", "PRKME", "PRZMA", "PSDTC", "PSGYO", "QNBFK", "QNBTR", "QUAGR", "RALYH", "RAYSG", "REEDR", "RGYAS", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "RYGYO", "RYSAS", "SAFKR", "SAHOL", "SAMAT", "SANEL", "SANFM", "SANKO", "SARKY", "SASA", "SAYAS", "SDTTR", "SEGMN", "SEGYO", "SEKFK", "SEKUR", "SELEC", "SELVA", "SERNT", "SEYKM", "SILVR", "SISE", "SKBNK", "SKTAS", "SKYLP", "SKYMD", "SMART", "SMRTG", "SMRVA", "SNGYO", "SNICA", "SNPAM", "SODSN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SUNTK", "SURGY", "SUWEN", "SVGYO", "TABGD", "TARKM", "TATEN", "TATGD", "TAVHL", "TBORG", "TCELL", "TCKRC", "TDGYO", "TEHOL", "TEKTU", "TERA", "TEZOL", "TGSAS", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TMSN", "TNZTP", "TOASO", "TRALT", "TRCAS", "TRENJ", "TRGYO", "TRHOL", "TRILC", "TRMET", "TSGYO", "TSKB", "TSPOR", "TTKOM", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "TUREX", "TURGG", "TURSG", "UCAYM", "UFUK", "ULAS", "ULKER", "ULUFA", "ULUSE", "ULUUN", "UMPAS", "UNLU", "USAK", "VAKBN", "VAKFA", "VAKFN", "VAKKO", "VANGD", "VBTYZ", "VERTU", "VERUS", "VESBE", "VESTL", "VKFYO", "VKGYO", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YBTAS", "YEOTK", "YESIL", "YGGYO", "YIGIT", "YKBNK", "YKSLN", "YONGA", "YUNSA", "YYAPI", "YYLGD", "ZEDUR", "ZERGY", "ZGYO", "ZOREN", "ZRGYO"], "BIST 50-30": ["ALARK", "ARCLK", "BRSAN", "BTCIM", "CANTE", "CCOLA", "CIMSA", "DOAS", "HALKB", "HEKTS", "KONTR", "KUYAS", "MAVI", "MIATK", "OYAKC", "PASEU", "TRMET", "TSKB", "TURSG", "ULKER"], "KATILIM 30": ["ALKLC", "ALTNY", "ASELS", "BIMAS", "BSOKE", "CANTE", "CIMSA", "CVKMD", "CWENE", "DAPGM", "EFOR", "EKGYO", "EREGL", "EUPWR", "GENIL", "GLRMK", "GUBRF", "KRDMD", "KTLEV", "MAVI", "OBAMS", "PASEU", "PETKM", "QUAGR", "RALYH", "TKFEN", "TUKAS", "TUPRS", "TUREX", "YEOTK"], "KATILIM 50": ["ALKLC", "ALTNY", "ASELS", "BERA", "BIMAS", "BINHO", "BMSTL", "BSOKE", "CANTE", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOFRB", "EFOR", "EKGYO", "ENJSA", "EREGL", "EUPWR", "FORMT", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GUBRF", "IHLAS", "IZFAS", "KARSN", "KATMR", "KCAER", "KRDMD", "KTLEV", "KZBGY", "MAGEN", "MAVI", "MPARK", "NETCD", "OBAMS", "PASEU", "PETKM", "QUAGR", "RALYH", "SARKY", "TKFEN", "TUKAS", "TUPRS", "TUREX", "USAK", "YEOTK"], "KATILIM 100": ["AKFYE", "ALBRK", "ALFAS", "ALKLC", "ALTNY", "ALVES", "ARDYZ", "ASELS", "ATATP", "BEGYO", "BERA", "BIENY", "BIMAS", "BINBN", "BINHO", "BMSTL", "BSOKE", "CANTE", "CEMTS", "CEMZY", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DCTTR", "DOFRB", "EFOR", "EGGUB", "EKGYO", "ENJSA", "EREGL", "EUPWR", "FONET", "FORMT", "FZLGY", "GENIL", "GENTS", "GEREL", "GESAN", "GLRMK", "GOKNR", "GRSEL", "GRTHO", "GUBRF", "GUNDG", "HRKET", "IHLAS", "IHLGM", "IMASM", "ISDMR", "IZFAS", "JANTS", "KARSN", "KATMR", "KBORU", "KCAER", "KOPOL", "KRDMD", "KTLEV", "KZBGY", "LMKDC", "LOGO", "MAGEN", "MAVI", "MEGMT", "MERCN", "MEYSU", "MOPAS", "MPARK", "NETCD", "NTGAZ", "OBAMS", "ORGE", "OZATD", "PASEU", "PETKM", "POLHO", "QUAGR", "RALYH", "RGYAS", "SAFKR", "SARKY", "SAYAS", "SDTTR", "SELEC", "SNGYO", "SRVGY", "SUNTK", "SURGY", "TARKM", "TEZOL", "TKFEN", "TKNSA", "TUKAS", "TUPRS", "TUREX", "USAK", "YEOTK", "YIGIT", "ZERGY"], "KATILIM SURD": ["ALBRK", "ASELS", "BIMAS", "BRISA", "BSOKE", "CIMSA", "ENJSA", "EREGL", "GRSEL", "ISDMR", "KARSN", "KLSER", "KMPUR", "LOGO", "MAGEN", "MAVI", "MPARK", "PETKM", "POLHO", "QUAGR", "SUNTK", "TKFEN", "TKNSA", "TUPRS", "YUNSA"], "KATILIM TEMETTU": ["ARASE", "ARDYZ", "ASELS", "ATATP", "AYEN", "BASGZ", "BIMAS", "CIMSA", "EBEBK", "EGGUB", "EGPRO", "ELITE", "EMPAE", "EREGL", "GENIL", "GOLTS", "GRSEL", "ISDMR", "JANTS", "KCAER", "KTLEV", "LKMNH", "LOGO", "MAVI", "MCARD", "NTGAZ", "PAGYO", "PLTUR", "SARKY", "SUNTK", "SUWEN", "TUPRS", "VAKKO", "YUNSA"], "BIST SURD-25": ["AEFES", "AKBNK", "ARCLK", "ASELS", "BIMAS", "CIMSA", "DOAS", "ENKAI", "GARAN", "ISCTR", "KCHOL", "MAVI", "MGROS", "OYAKC", "PETKM", "PGSUS", "SAHOL", "SISE", "TAVHL", "TCELL", "THYAO", "TSKB", "TUPRS", "ULKER", "YKBNK"], "GERI ALIM": ["AHGAZ", "ATAKP", "ATATP", "AVGYO", "BLUME", "BOBET", "BORLS", "BOSSA", "DAGI", "EFOR", "ENDAE", "ENERY", "GENIL", "GLYHO", "GOKNR", "GSDHO", "GWIND", "HRKET", "HUNER", "INVES", "KAYSE", "KLSYN", "KLYPV", "KOCMT", "KONKA", "LIDER", "LKMNH", "LOGO", "MAVI", "MEPET", "MERCN", "MERKO", "MIATK", "NTHOL", "ORGE", "PRKME", "SUWEN", "TCELL", "TEZOL", "THYAO", "VAKBN", "VAKFA", "VERTU"], "SABANCI TOP": ["AFYON", "AGESA", "AKBNK", "AKCNS", "AKGRT", "BRISA", "CIMSA", "CRFSA", "ENJSA", "KORDS", "SAHOL", "TKNSA"], "BUY SIRKETLER": ["AAGYO", "ADESE", "AHSGY", "AKHAN", "ALVES", "ARDYZ", "ARFYE", "ARMGD", "ASELS", "ASGYO", "ASUZU", "ATATP", "AYDEM", "BESTE", "BIGEN", "BMSTL", "BRSAN", "BRYAT", "CIMSA", "CLEBI", "CWENE", "DERHL", "DGATE", "DOFER", "DOFRB", "EBEBK", "ECOGR", "EDATA", "EFOR", "EGEGY", "EGGUB", "EKGYO", "ENKAI", "ESCOM", "ETILR", "EUPWR", "FADE", "FONET", "FORTE", "GEDZA", "GMTAS", "GRTHO", "GUBRF", "HDFGS", "HEDEF", "HLGYO", "HRKET", "HTTBT", "IHLGM", "ISGSY", "KARSN", "KATMR", "KIMMR", "KRGYO", "KRONT", "LINK", "MACKO", "MARBL", "MEGMT", "MERIT", "METRO", "MHRGY", "MOBTL", "MSGYO", "NETAS", "NETCD", "ONCSM", "OTKAR", "OZGYO", "PAGYO", "PAHOL", "PASEU", "PATEK", "PCILT", "PEKGY", "PENTA", "PGSUS", "PLTUR", "PRDGS", "PRZMA", "RGYAS", "SEGMN", "SRVGY", "TAVHL", "TCELL", "TCKRC", "TEHOL", "THYAO", "TNZTP", "TOASO", "TRALT", "TRENJ", "TRILC", "TRMET", "TTKOM", "TUREX", "YEOTK", "YGGYO", "YUNSA", "YYLGD"], "AK DEGER-100": ["A1CAP", "A1YEN", "AEFES", "AHSGY", "AKBNK", "AKFGY", "AKFYE", "AKGRT", "AKSA", "AKSGY", "ALBRK", "ANSGR", "ARASE", "ARTMS", "ASGYO", "AVHOL", "AVPGY", "AYGAZ", "BASGZ", "BAGFS", "BESLR", "BINHO", "BNTAS", "BULGS", "CATES", "DESA", "DOAS", "DUNYH", "DZGYO", "EDIP", "EKGYO", "ESCOM", "EUREN", "FORTE", "GARAN", "GARFA", "GEDIK", "GLCVY", "GLRYH", "GLYHO", "GOKNR", "GOLTS", "GSDDE", "GSDHO", "HALKB", "HDFGS", "HLGYO", "IHGZT", "IHLGM", "INDES", "INFO", "ISCTR", "ISFIN", "ISGSY", "KATMR", "KIMMR", "KRSTL", "KUTPO", "KZBGY", "LIDFA", "LILAK", "MERIT", "MHRGY", "MNDRS", "NTGAZ", "NTHOL", "ODAS", "ORGE", "OYYAT", "PAGYO", "PAHOL", "PCILT", "PETUN", "PGSUS", "PLTUR", "PSGYO", "RGYAS", "RTALB", "SISE", "SRVGY", "SURGY", "TCELL", "THYAO", "TMSN", "TNZTP", "TRCAS", "TRGYO", "TSKB", "TTKOM", "TUREX", "TURSG", "ULKER", "ULUFA", "VAKBN", "VAKFA", "VAKFN", "VKGYO", "YGGYO", "YKBNK", "YUNSA", "YYLGD"], "HOLDING-YATIRIM": ["AGHOL", "AKYHO", "ALARK", "ARSAN", "AVHOL", "BERA", "BINHO", "BRYAT", "BULGS", "COSMO", "DENGE", "DERHL", "DOHOL", "DUNYH", "ECILC", "ECZYT", "GLRYH", "GLYHO", "GOZDE", "GRTHO", "GSDHO", "HDFGS", "HEDEF", "HUBVC", "ICUGS", "IEYHO", "IHLAS", "IHYAY", "INVEO", "INVES", "ISGSY", "KCHOL", "KLRHO", "LRSHO", "LYDHO", "MARKA", "METRO", "MZHLD", "NTHOL", "OSTIM", "OTTO", "PAHOL", "POLHO", "PRDGS", "RALYH", "SAHOL", "SISE", "TAVHL", "TEHOL", "TKFEN", "TRCAS", "TRHOL", "UFUK", "UNLU", "VERTU", "VERUS", "YESIL"], "ILETISIM": ["TCELL", "TTKOM"], "ORMAN KAGIT BASIM": ["ALKA", "BAKAB", "BARMA", "DGNMO", "DURDO", "GENTS", "GIPTA", "KAPLM", "KARTN", "KLSYN", "KONKA", "LILAK", "MNDTR", "PRZMA", "SAMAT", "TEZOL", "VKING"], "KIMYA-PET-PLAS": ["ACSEL", "AKSA", "ALKIM", "ANGEN", "AYGAZ", "BAGFS", "BAHKM", "BAYRK", "BRISA", "BRKSN", "DEVA", "DNISI", "DYOBY", "EGGUB", "EGPRO", "EPLAS", "EUREN", "FRMPL", "GEDZA", "GENKM", "GOODY", "GUBRF", "HEKTS", "ISKPL", "IZFAS", "KBORU", "KMPUR", "KOPOL", "KRPLS", "MARMR", "MEDTR", "MERCN", "MRSHL", "ONCSM", "OZRDN", "PETKM", "POLTK", "RNPOL", "RTALB", "SANFM", "SASA", "SEKUR", "SEYKM", "TARKM", "TMPOL", "TRILC", "TUPRS"], "METAL ANA": ["BLUME", "BMSCH", "BMSTL", "BRSAN", "BURCE", "BURVA", "CELHA", "CEMAS", "CEMTS", "CUSAN", "DMSAS", "DOFER", "DOKTA", "ERBOS", "ERCB", "EREGL", "ISDMR", "IZMDC", "KCAER", "KOCMT", "KRDMA", "KRDMB", "KRDMD", "MEGMT", "OZYSR", "PNLSN", "SARKY", "TCKRC", "TUCLK", "YKSLN"], "METAL ESYA MAKINA": ["ALCAR", "ALVES", "ARCLK", "ASTOR", "ASUZU", "BFREN", "BNTAS", "BVSAN", "DITAS", "EGEEN", "EKOS", "EMKEL", "EUPWR", "FMIZP", "FORMT", "FROTO", "GEREL", "HATSN", "HKTM", "IHEVA", "IMASM", "JANTS", "KARSN", "KATMR", "KLMSN", "MAKIM", "MAKTK", "MEKAG", "OTKAR", "OZATD", "PARSN", "PRKAB", "SAFKR", "SAYAS", "SILVR", "SNICA", "TMSN", "TOASO", "TTRAK", "ULUSE", "VESBE", "VESTL", "YIGIT"], "SIGORTA": ["AGESA", "AKGRT", "ANHYT", "ANSGR", "RAYSG", "TURSG"], "TAS TOPRAK": ["AFYON", "AKCNS", "BIENY", "BOBET", "BSOKE", "BTCIM", "BUCIM", "CGCAM", "CIMSA", "CMBTN", "DOGUB", "EGSER", "GOLTS", "KLKIM", "KLSER", "KONYA", "KUTPO", "LMKDC", "MARBL", "NIBAS", "NUHCM", "OYAKC", "QUAGR", "SERNT", "USAK"], "TICARET": ["ARZUM", "BIMAS", "BIZIM", "CRFSA", "DCTTR", "DOAS", "EBEBK", "GENIL", "GMTAS", "INTEM", "KIMMR", "KOTON", "KUVVA", "MAVI", "MEPET", "MGROS", "MOPAS", "PSDTC", "SANKO", "SELEC", "SOKM", "SUWEN", "TGSAS", "TKNSA", "VAKKO"], "TEKSTIL DERI": ["ARTMS", "BLCYT", "BOSSA", "DAGI", "DERIM", "DESA", "ENSRI", "HATEK", "ISSEN", "KORDS", "KRTEK", "LUKSK", "MNDRS", "RODRG", "RUBNS", "SKTAS", "SUNTK", "YATAS", "YUNSA"], "TURIZM": ["ATATR", "AVTUR", "AYCES", "BIGCH", "BYDNR", "DOCO", "ETILR", "MAALT", "MARTI", "MERIT", "PKENT", "TABGD", "TEKTU", "ULAS"], "BIST 30": ["AEFES", "AKBNK", "ASELS", "ASTOR", "BIMAS", "DSTKF", "EKGYO", "ENKAI", "EREGL", "FROTO", "GARAN", "GUBRF", "ISCTR", "KCHOL", "KRDMD", "MGROS", "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TOASO", "TRALT", "TTKOM", "TUPRS", "VAKBN", "YKBNK"], "BIST 50": ["AEFES", "AKBNK", "ALARK", "ARCLK", "ASELS", "ASTOR", "BIMAS", "BRSAN", "BTCIM", "CANTE", "CCOLA", "CIMSA", "DOAS", "DSTKF", "EKGYO", "ENKAI", "EREGL", "FROTO", "GARAN", "GUBRF", "HALKB", "HEKTS", "ISCTR", "KCHOL", "KONTR", "KRDMD", "KUYAS", "MAVI", "MGROS", "MIATK", "OYAKC", "PASEU", "PETKM", "PGSUS", "SAHOL", "SASA", "SISE", "TAVHL", "TCELL", "THYAO", "TOASO", "TRALT", "TRMET", "TSKB", "TTKOM", "TUPRS", "TURSG", "ULKER", "VAKBN", "YKBNK"], "BIST 100": ["AEFES", "AGHOL", "AKBNK", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "ASELS", "ASTOR", "BALSU", "BIMAS", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "DSTKF", "ECILC", "EFOR", "EKGYO", "ENERY", "ENJSA", "ENKAI", "EREGL", "EUPWR", "EUREN", "FENER", "FROTO", "GARAN", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GSRAY", "GUBRF", "HALKB", "HEKTS", "ISCTR", "ISMEN", "IZENR", "KCHOL", "KLRHO", "KONTR", "KRDMD", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MGROS", "MIATK", "MPARK", "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PETKM", "PGSUS", "PSGYO", "QUAGR", "RALYH", "REEDR", "SAHOL", "SARKY", "SASA", "SISE", "SKBNK", "SOKM", "TABGD", "TAVHL", "TCELL", "THYAO", "TKFEN", "TOASO", "TRALT", "TRENJ", "TRMET", "TSKB", "TTKOM", "TUKAS", "TUPRS", "TUREX", "TURSG", "ULKER", "VAKBN", "VESTL", "YKBNK", "ZOREN"], "ULASTIRMA": ["BEYAZ", "CLEBI", "GRSEL", "GSDDE", "HOROZ", "HRKET", "PASEU", "PGSUS", "RYSAS", "THYAO", "TLMAN", "TUREX"], "BIST MALI": ["A1CAP", "AAGYO", "ADGYO", "AGESA", "AGHOL", "AGYO", "AHSGY", "AKBNK", "AKFGY", "AKGRT", "AKMGY", "AKSGY", "AKYHO", "ALARK", "ALBRK", "ALGYO", "ANHYT", "ANSGR", "ARSAN", "ASGYO", "ATAGY", "AVGYO", "AVHOL", "AVPGY", "BASGZ", "BEGYO", "BERA", "BINHO", "BRKVY", "BRYAT", "BULGS", "COSMO", "CRDFA", "DENGE", "DERHL", "DGGYO", "DOHOL", "DSTKF", "DUNYH", "DZGYO", "ECILC", "ECZYT", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "GARAN", "GARFA", "GEDIK", "GLBMD", "GLCVY", "GLRYH", "GLYHO", "GOZDE", "GRTHO", "GSDHO", "HALKB", "HDFGS", "HEDEF", "HLGYO", "HUBVC", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHLAS", "IHYAY", "INFO", "INVEO", "INVES", "ISATR", "ISBTR", "ISCTR", "ISFIN", "ISGSY", "ISGYO", "ISMEN", "KCHOL", "KGYO", "KLGYO", "KLRHO", "KRGYO", "KTLEV", "KZBGY", "KZGYO", "LIDFA", "LRSHO", "LXGYO", "LYDHO", "MARKA", "METRO", "MHRGY", "MRGYO", "MSGYO", "MZHLD", "NTHOL", "NUGYO", "OSMEN", "OSTIM", "OTTO", "OYYAT", "OZGYO", "OZKGY", "PAGYO", "PAHOL", "PEKGY", "POLHO", "PRDGS", "PSGYO", "RALYH", "RAYSG", "RYGYO", "SAHOL", "SEGYO", "SEKFK", "SISE", "SKBNK", "SKYMD", "SMRVA", "SNGYO", "SRVGY", "SURGY", "SVGYO", "TAVHL", "TDGYO", "TEHOL", "TERA", "TKFEN", "TRCAS", "TRGYO", "TRHOL", "TSGYO", "TSKB", "TURSG", "UFUK", "ULUFA", "UNLU", "VAKBN", "VAKFA", "VAKFN", "VERTU", "VERUS", "VKGYO", "VRGYO", "YESIL", "YGGYO", "YKBNK", "ZERGY", "ZGYO", "ZRGYO"], "BIST SINAI": ["ACSEL", "ADEL", "AEFES", "AFYON", "AGROT", "AKCNS", "AKHAN", "AKSA", "ALCAR", "ALKA", "ALKIM", "ALKLC", "ALVES", "ANGEN", "ARCLK", "ARMGD", "ARTMS", "ASTOR", "ASUZU", "ATAKP", "AVOD", "AYGAZ", "BAGFS", "BAHKM", "BAKAB", "BALSU", "BANVT", "BARMA", "BAYRK", "BESLR", "BFREN", "BIENY", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORSK", "BOSSA", "BRISA", "BRKSN", "BRSAN", "BSOKE", "BTCIM", "BUCIM", "BURCE", "BURVA", "BVSAN", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CGCAM", "CIMSA", "CMBTN", "CUSAN", "CVKMD", "DAGI", "DARDL", "DERIM", "DESA", "DEVA", "DGNMO", "DITAS", "DMRGD", "DMSAS", "DNISI", "DOFER", "DOGUB", "DOKTA", "DURDO", "DURKN", "DYOBY", "EFOR", "EGEEN", "EGGUB", "EGPRO", "EGSER", "EKOS", "EKSUN", "ELITE", "EMKEL", "ENSRI", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "EUPWR", "EUREN", "FADE", "FMIZP", "FORMT", "FRIGO", "FRMPL", "FROTO", "GEDZA", "GENKM", "GENTS", "GEREL", "GIPTA", "GOKNR", "GOLTS", "GOODY", "GUBRF", "GUNDG", "HATEK", "HATSN", "HEKTS", "HKTM", "IHEVA", "IMASM", "ISDMR", "ISKPL", "ISSEN", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KARTN", "KBORU", "KCAER", "KLKIM", "KLMSN", "KLSER", "KLSYN", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONYA", "KOPOL", "KORDS", "KRDMA", "KRDMB", "KRDMD", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KTSKR", "KUTPO", "LILAK", "LMKDC", "LUKSK", "MAKIM", "MAKTK", "MARBL", "MARMR", "MEDTR", "MEGMT", "MEKAG", "MERCN", "MERKO", "MEYSU", "MNDRS", "MNDTR", "MRSHL", "NIBAS", "NUHCM", "OBAMS", "OFSYM", "ONCSM", "ORCAY", "OTKAR", "OYAKC", "OYLUM", "OZATD", "OZRDN", "OZSUB", "OZYSR", "PARSN", "PENGD", "PETKM", "PETUN", "PINSU", "PNLSN", "PNSUT", "POLTK", "PRKAB", "PRKME", "PRZMA", "QUAGR", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "SAFKR", "SAMAT", "SANFM", "SARKY", "SASA", "SAYAS", "SEGMN", "SEKUR", "SELVA", "SERNT", "SEYKM", "SILVR", "SKTAS", "SNICA", "SOKE", "SUNTK", "TARKM", "TATGD", "TBORG", "TCKRC", "TEZOL", "TMPOL", "TMSN", "TOASO", "TRALT", "TRENJ", "TRILC", "TRMET", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "ULKER", "ULUSE", "ULUUN", "USAK", "VANGD", "VESBE", "VESTL", "VKING", "VSNMD", "YAPRK", "YATAS", "YIGIT", "YKSLN", "YUNSA", "YYLGD"], "BIST TEKNOLOJI": ["ALCTL", "ALTNY", "ARDYZ", "ARENA", "ASELS", "ATATP", "AZTEK", "BINBN", "DESPC", "DGATE", "DOFRB", "EDATA", "EMPAE", "ESCOM", "FONET", "FORTE", "HTTBT", "INDES", "INGRM", "KAREL", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MCARD", "MIATK", "MOBTL", "MTRKS", "NETAS", "NETCD", "OBASE", "ODINE", "ONRYT", "PAPIL", "PATEK", "PENTA", "PKART", "REEDR", "SDTTR", "SMART", "VBTYZ"], "MENKUL KIY YO": ["ATLAS", "ETYAT", "EUKYO", "EUYO", "GRNYO", "ISYAT", "MTRYO", "OYAYO", "VKFYO"], "BANKA": ["AKBNK", "ALBRK", "GARAN", "HALKB", "ICBCT", "ISATR", "ISBTR", "ISCTR", "SKBNK", "TSKB", "VAKBN", "YKBNK"], "BILISIM": ["ALCTL", "ARDYZ", "ARENA", "ATATP", "AZTEK", "BINBN", "DESPC", "DGATE", "DOFRB", "EDATA", "EMPAE", "ESCOM", "FONET", "FORTE", "HTTBT", "INDES", "INGRM", "KAREL", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MCARD", "MIATK", "MOBTL", "MTRKS", "NETAS", "NETCD", "OBASE", "ODINE", "PAPIL", "PATEK", "PENTA", "PKART", "REEDR", "SMART", "VBTYZ"], "ELEKTRIK": ["A1YEN", "AHGAZ", "AKENR", "AKFYE", "AKSEN", "AKSUE", "ALFAS", "ARASE", "ARFYE", "AYDEM", "AYEN", "BESTE", "BIGEN", "BIOEN", "CANTE", "CATES", "CONSE", "CWENE", "ECOGR", "ENDAE", "ENERY", "ENJSA", "ENTRA", "ESEN", "GWIND", "HUNER", "IZENR", "KLYPV", "LYDYE", "MAGEN", "MOGAN", "NATEN", "NTGAZ", "ODAS", "PAMEL", "SMRTG", "TATEN", "ZEDUR", "ZOREN"], "FAKTORING": ["CRDFA", "DSTKF", "GARFA", "ISFIN", "LIDFA", "SEKFK", "ULUFA", "VAKFA", "VAKFN"], "GIDA ICECEK": ["AEFES", "AKHAN", "ALKLC", "ARMGD", "ATAKP", "AVOD", "BALSU", "BANVT", "BESLR", "BORSK", "CCOLA", "CEMZY", "DARDL", "DMRGD", "DURKN", "EFOR", "EKSUN", "ELITE", "ERSU", "FADE", "FRIGO", "GOKNR", "GUNDG", "KAYSE", "KRSTL", "KRVGD", "KTSKR", "MERKO", "MEYSU", "OBAMS", "OFSYM", "ORCAY", "OYLUM", "PENGD", "PETUN", "PINSU", "PNSUT", "GRID", "SEGMN", "SELVA", "SOKE", "TATGD", "TBORG", "TUKAS", "ULKER", "ULUUN", "VANGD", "YYLGD"], "GAYRIMENKUL YO": ["AAGYO", "ADGYO", "AGYO", "AHSGY", "AKFGY", "AKMGY", "AKSGY", "ALGYO", "ASGYO", "ATAGY", "AVGYO", "AVPGY", "BASGZ", "BEGYO", "DGGYO", "DZGYO", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "HLGYO", "IDGYO", "ISGYO", "KGYO", "KLGYO", "KRGYO", "KZBGY", "KZGYO", "LXGYO", "MHRGY", "MRGYO", "MSGYO", "NUGYO", "OZGYO", "OZKGY", "PAGYO", "PEKGY", "PSGYO", "RYGYO", "SEGYO", "SNGYO", "SRVGY", "SURGY", "SVGYO", "TDGYO", "TRGYO", "TSGYO", "VKGYO", "VRGYO", "YGGYO", "ZERGY", "ZGYO", "ZRGYO"], "BIST 100-30": ["AGHOL", "AKSA", "AKSEN", "ALARK", "ALTNY", "ANSGR", "ARCLK", "BALSU", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "CANTE", "CCOLA", "CIMSA", "CVKMD", "CWENE", "DAPGM", "DOAS", "DOHOL", "ECILC", "EFOR", "ENERY", "ENJSA", "EUPWR", "EUREN", "FENER", "GENIL", "GESAN", "GLRMK", "GRSEL", "GRTHO", "GSRAY", "HALKB", "HEKTS", "ISMEN", "IZENR", "KLRHO", "KONTR", "KTLEV", "KUYAS", "MAGEN", "MAVI", "MIATK", "MPARK", "OBAMS", "ODAS", "OTKAR", "OYAKC", "PAHOL", "PASEU", "PATEK", "PSGYO", "QUAGR", "RALYH", "REEDR", "SARKY", "SKBNK", "SOKM", "TABGD", "TKFEN", "TRENJ", "TRMET", "TSKB", "TUKAS", "TUREX", "TURSG", "ULKER", "VESTL", "ZOREN"], "MADENCILIK": ["CVKMD", "PRKME", "RUZYE", "TRALT", "TRENJ", "TRMET", "VSNMD"], "BIST SURD": ["AEFES", "AGESA", "AGHOL", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKGRT", "AKSA", "AKSEN", "AKSGY", "ALARK", "ALBRK", "ANHYT", "ANSGR", "ARCLK", "ASELS", "ASUZU", "AYDEM", "AYGAZ", "BESLR", "BIMAS", "BIOEN", "BIZIM", "BRISA", "BSOKE", "BTCIM", "CCOLA", "CIMSA", "CONSE", "DGNMO", "DOAS", "DOCO", "DOHOL", "ENJSA", "ENKAI", "EREGL", "ESEN", "FROTO", "GARAN", "GLYHO", "GRSEL", "GWIND", "HALKB", "HEKTS", "HTTBT", "ISATR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGYO", "ISMEN", "KARSN", "KCHOL", "KLKIM", "KLSER", "KMPUR", "KONTR", "KORDS", "LOGO", "MAGEN", "MAVI", "MGROS", "MPARK", "NATEN", "NUHCM", "OTKAR", "OYAKC", "PETKM", "PGSUS", "POLHO", "QUAGR", "SAHOL", "SASA", "SISE", "SKBNK", "SMRTG", "SOKM", "SUNTK", "TATGD", "TAVHL", "TCELL", "THYAO", "TKFEN", "TKNSA", "TOASO", "TSKB", "TTKOM", "TTRAK", "TUPRS", "TURSG", "ULKER", "VAKBN", "VESBE", "VESTL", "VKGYO", "YKBNK", "YUNSA", "ZOREN"], "ISBANK ISTIRAK": ["ANHYT", "ANSGR", "ISCTR", "ISFIN", "ISGSY", "ISGYO", "ISMEN", "ISYAT", "SISE", "TSGYO", "TSKB"], "TEMETTU 25": ["AGHOL", "AKBNK", "AKSA", "ALARK", "ANHYT", "BIMAS", "BRYAT", "CCOLA", "CIMSA", "DOAS", "DOHOL", "ECILC", "ENKAI", "EREGL", "FROTO", "GARAN", "ISCTR", "ISMEN", "KCHOL", "MAVI", "MGROS", "TCELL", "TOASO", "TUPRS", "TURSG"], "BIST TEMETTU": ["AEFES", "AFYON", "AGESA", "AGHOL", "AKBNK", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ARASE", "ARDYZ", "ASELS", "ASTOR", "ASUZU", "ATATP", "AYEN", "AYGAZ", "AZTEK", "BASGZ", "BIMAS", "BRKVY", "BRYAT", "CCOLA", "CIMSA", "CLEBI", "DOAS", "DOHOL", "EBEBK", "ECILC", "ECZYT", "EGGUB", "EGPRO", "ELITE", "EMPAE", "ENKAI", "EREGL", "FROTO", "GARAN", "GEDIK", "GENIL", "GLCVY", "GLYHO", "GOLTS", "GRSEL", "GWIND", "ISATR", "ISBTR", "ISCTR", "ISDMR", "ISMEN", "JANTS", "KCAER", "KCHOL", "KFEIN", "KLKIM", "KTLEV", "LIDER", "LILAK", "LKMNH", "LOGO", "MACKO", "MAVI", "MCARD", "MERIT", "MGROS", "MTRKS", "NTGAZ", "NUHCM", "PAGYO", "PCILT", "PLTUR", "PNLSN", "PSGYO", "SARKY", "SISE", "SMRVA", "SUNTK", "SUWEN", "TCELL", "TGSAS", "TOASO", "TRGYO", "TUPRS", "TURSG", "ULUFA", "VAKKO", "YAPRK", "YUNSA", "ZRGYO"], "ARACI KURUMLAR": ["A1CAP", "GEDIK", "GLBMD", "INFO", "ISMEN", "OSMEN", "OYYAT", "SKYMD", "TERA"], "INSAAT": ["AKFIS", "ANELE", "BRLSM", "DAPGM", "EDIP", "ENKAI", "GESAN", "GLRMK", "KUYAS", "ORGE", "SANEL", "TURGG", "UCAYM", "YAYLA"], "KOBI SANAYI": ["BAYRK", "BURVA", "DNISI", "DOGUB", "ERSU", "IZFAS", "IZINV", "LUKSK", "NIBAS", "ONCSM", "ORCAY", "OZRDN", "POLTK", "PRZMA", "RODRG", "RTALB", "RUZYE", "SAMAT", "SEYKM", "VANGD", "YAPRK"], "BIST ANA": ["A1YEN", "ACSEL", "ADEL", "ADESE", "AFYON", "AHSGY", "AKENR", "AKHAN", "AKMGY", "AKSUE", "ALCAR", "ALCTL", "ALKA", "ALKIM", "ALKLC", "ALVES", "ANELE", "ANGEN", "ARENA", "ARFYE", "ARSAN", "ARTMS", "ARZUM", "ASUZU", "AVGYO", "AVHOL", "AVOD", "AYCES", "AYEN", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BANVT", "BAYRK", "BEGYO", "BESTE", "BEYAZ", "BIGCH", "BIGTK", "BIZIM", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORSK", "BOSSA", "BRKVY", "BRLSM", "BULGS", "BURCE", "BVSAN", "BYDNR", "CATES", "CELHA", "CEMAS", "CEMTS", "CEOEM", "CGCAM", "CMBTN", "CONSE", "CRFSA", "CUSAN", "DAGI", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DGATE", "DGNMO", "DITAS", "DMRGD", "DMSAS", "DNISI", "DOCO", "DOFER", "DOKTA", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EDATA", "EDIP", "EGEGY", "EGEPO", "EGSER", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMPAE", "ENDAE", "ENSRI", "EPLAS", "ERBOS", "ERCB", "ESCOM", "ETILR", "EYGYO", "FADE", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "GARFA", "GEDZA", "GENKM", "GEREL", "GLRYH", "GOODY", "GSDDE", "GSDHO", "GUNDG", "GZNMI", "HATEK", "HDFGS", "HEDEF", "HKTM", "HOROZ", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IHAAS", "IHGZT", "IHLGM", "IHYAY", "IMASM", "INFO", "INGRM", "INTEM", "ISGSY", "ISSEN", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KARTN", "KBORU", "KFEIN", "KGYO", "KIMMR", "KLMSN", "KLSYN", "KNFRT", "KONKA", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KTSKR", "KUTPO", "KZGYO", "LIDFA", "LKMNH", "LUKSK", "LXGYO", "LYDYE", "MAALT", "MACKO", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MCARD", "MEDTR", "MEKAG", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MHRGY", "MNDRS", "MNDTR", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "NETAS", "NETCD", "NIBAS", "NUGYO", "OBASE", "OFSYM", "ONCSM", "ONRYT", "OSMEN", "OSTIM", "OTTO", "OZGYO", "OZSUB", "OZYSR", "PAMEL", "PCILT", "PEKGY", "PENGD", "PENTA", "PETUN", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "PRDGS", "PRKAB", "PRKME", "PRZMA", "RAYSG", "RTALB", "RUBNS", "RUZYE", "SAFKR", "SANFM", "SANKO", "SAYAS", "SEGMN", "SEGYO", "SELVA", "SERNT", "SKTAS", "SKYMD", "SMART", "SMRVA", "SNICA", "SOKE", "SVGYO", "TARKM", "TATGD", "TBORG", "TEHOL", "TEKTU", "TERA", "TGSAS", "TKNSA", "TLMAN", "TMPOL", "TRILC", "TSGYO", "TUCLK", "TURGG", "UCAYM", "UFUK", "ULUFA", "ULUSE", "ULUUN", "UNLU", "VBTYZ", "VERTU", "VERUS", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YESIL", "YIGIT", "YKSLN", "YUNSA", "ZEDUR", "ZGYO"], "BIST HALKA ARZ": ["AAGYO", "AHSGY", "AKFIS", "AKHAN", "ALKLC", "ALTNY", "ARFYE", "ARMGD", "ATATR", "BAHKM", "BALSU", "BESTE", "BIGEN", "BINBN", "BULGS", "CEMZY", "CGCAM", "DCTTR", "DOFRB", "DSTKF", "DURKN", "ECOGR", "EFOR", "EGEGY", "EMPAE", "ENDAE", "FRMPL", "GENKM", "GLRMK", "GUNDG", "HOROZ", "HRKET", "KLYPV", "KOCMT", "KOTON", "LILAK", "LXGYO", "MCARD", "MEYSU", "MOPAS", "NETCD", "ONRYT", "OZATD", "OZYSR", "PAHOL", "SEGMN", "SERNT", "SMRVA", "SVGYO", "TCKRC", "UCAYM", "VAKFA", "VSNMD", "YIGIT", "ZERGY", "ZGYO"], "HALKBANK SURD-30": ["AEFES", "ALARK", "ANSGR", "ARCLK", "ASELS", "BSOKE", "CCOLA", "CIMSA", "DOHOL", "ENJSA", "ENKAI", "FROTO", "GARAN", "HALKB", "ISCTR", "KCHOL", "MAGEN", "MAVI", "MGROS", "SAHOL", "SISE", "SOKM", "TCELL", "THYAO", "TSKB", "TTRAK", "ULKER", "VESTL", "YKBNK", "ZOREN"], "OSMANLI DEGER-25": ["AEFES", "AGHOL", "ARDYZ", "ATATP", "CLEBI", "DOCO", "DOHOL", "EKGYO", "GLYHO", "GRSEL", "KLKIM", "LOGO", "MAVI", "MGROS", "MPARK", "PGSUS", "RYGYO", "TAVHL", "TCELL", "TEHOL", "THYAO", "TRENJ", "TRGYO", "TTKOM", "YEOTK"], "TEMETTU 10 YIL": ["ADEL", "AEFES", "AGHOL", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ASELS", "AYGAZ", "BIMAS", "BRYAT", "CCOLA", "CEMTS", "ECILC", "ECZYT", "EGEEN", "EGGUB", "ENKAI", "FROTO", "ISMEN", "JANTS", "KCHOL", "LKMNH", "NUHCM", "PAGYO", "SAHOL", "SARKY", "SELEC", "SISE", "TOASO", "VESBE", "YGGYO"], "TEMETTU 5 YIL": ["ADEL", "AEFES", "AGHOL", "AKBNK", "AKCNS", "AKMGY", "AKSA", "ALARK", "ANHYT", "ARDYZ", "ASELS", "AYGAZ", "BEYAZ", "BIMAS", "BRISA", "BRYAT", "CCOLA", "CEMTS", "DOAS", "DOHOL", "ECILC", "ECZYT", "EGEEN", "EGGUB", "EGPRO", "ENJSA", "ENKAI", "FROTO", "GARAN", "GENTS", "GOLTS", "ISATR", "ISBTR", "ISCTR", "ISMEN", "JANTS", "KCHOL", "KFEIN", "LKMNH", "LOGO", "MAVI", "MERCN", "MSGYO", "MTRKS", "NTGAZ", "NUHCM", "OSMEN", "PAGYO", "SAHOL", "SARKY", "SELEC", "SISE", "TCELL", "TOASO", "TTRAK", "TURSG", "VAKKO", "VESBE", "YAPRK", "YGGYO", "YUNSA"], "Aracı Kurumlar": ["A1CAP", "GEDIK", "GLBMD", "INFO", "ISMEN", "OSMEN", "OYYAT", "SKYMD", "TERA", "UNLU"], "Bankacılık": ["AKBNK", "ALBRK", "GARAN", "HALKB", "ICBCT", "ISATR", "ISBTR", "ISCTR", "ISKUR", "KLNMA", "QNBTR", "SKBNK", "TSKB", "VAKBN", "YKBNK"], "Bilgisayar Topt": ["ARENA", "DESPC", "DGATE", "HTTBT", "INDES", "INGRM", "PENTA"], "Boya": ["DYOBY", "EMNIS", "IZFAS", "MRSHL"], "Cam": ["CGCAM", "SISE"], "Yabancı Ortak": ["ADEL", "AEFES", "AGESA", "AKCNS", "AKGRT", "AKMGY", "ALCAR", "ALCTL", "ASUZU", "AYGAZ", "BANVT", "BASCM", "BFREN", "BRISA", "CCOLA", "CMENT", "CONSE", "CRFSA", "DMRGD", "DURDO", "EGPRO", "FROTO", "GMTAS", "GOKNR", "ICBCT", "IZINV", "KENT", "KLSER", "KLSYN", "KMPUR", "KONYA", "KOTON", "KRGYO", "MNDTR", "MPARK", "MRSHL", "NETAS", "NETCD", "ORGE", "OYAKC", "OZRDN", "PKART", "POLTK", "PRKAB", "QNBTR", "RAYSG", "RYSAS", "SKBNK", "SOKM", "TAVHL", "TBORG", "TCELL", "TOASO", "TTRAK", "ULKER", "VERUS"], "Dayanıklı Tüketim": ["ALCAR", "ARCLK", "ARZUM", "IHEVA", "KLMSN", "SAFKR", "SNICA", "VESBE", "VESTL"], "Demir-Çelik Döküm": ["BMSCH", "BMSTL", "BURCE", "CEMAS", "CUSAN", "DMSAS", "ERBOS", "EUREN"], "Demir-Çelik Temel": ["BRSAN", "CELHA", "CEMTS", "DOFER", "ERCB", "EREGL", "ISDMR", "IZMDC", "KCAER", "KOCMT", "KRDMA", "KRDMB", "KRDMD", "OZYSR", "YKSLN"], "Deri Giyim": ["DERHL", "DERIM", "DESA", "ENSRI"], "Elektrik-Gaz Dağ": ["AHGAZ", "ARASE", "BASGZ", "ENERY", "ENJSA"], "Elektrik Kurulum": ["ALFAS", "ASTOR", "CWENE", "EMKEL", "EUPWR", "GESAN", "KLYPV", "KONTR", "MAGEN", "MOGAN", "NATEN", "ORGE", "SAYAS", "SMRTG", "ULUSE"], "Elektrik Üretim": ["A1YEN", "AKENR", "AKFYE", "AKSEN", "AKSUE", "ARFYE", "AYDEM", "AYEN", "BIGEN", "BIOEN", "CANTE", "CATES", "CONSE", "ECOGR", "ENDAE", "ENTRA", "ESEN", "GWIND", "HUNER", "IZENR", "ODAS", "PAMEL", "TATEN", "TRENJ", "YAYLA", "ZEDUR", "ZOREN"], "Makine-Teçhizat Üretim": ["EKOS", "HKTM", "HRKET", "IMASM", "MAKIM", "OZATD", "SANEL", "SILVR"], "Endüstriyel Tekstil": ["AKSA", "KOPOL", "KORDS", "SASA"], "Fin.Kira Faktoring": ["CRDFA", "DSTKF", "GARFA", "ISFIN", "LIDFA", "QNBFK", "SEKFK", "UFUK", "ULUFA", "VAKFA", "VAKFN"], "GYO": ["ADESE", "ADGYO", "AGYO", "AHSGY", "AKFGY", "AKMGY", "AKSGY", "ALGYO", "ASGYO", "ATAGY", "AVGYO", "AVPGY", "BEGYO", "DAPGM", "DGGYO", "DZGYO", "EDIP", "EGEGY", "EKGYO", "EYGYO", "FZLGY", "HLGYO", "IDGYO", "IHLGM", "ISGYO", "KGYO", "KLGYO", "KRGYO", "KZBGY", "KZGYO", "MHRGY", "MRGYO", "MSGYO", "NUGYO", "OZGYO", "OZKGY", "PAGYO", "PEKGY", "PSGYO", "RYGYO", "SEGYO", "SNGYO", "SRVGY", "SURGY", "TDGYO", "TRGYO", "TSGYO", "TURGG", "VKGYO", "VRGYO", "YGGYO", "YGYO", "ZERGY", "ZGYO", "ZRGYO"], "Gıda": ["ALKLC", "ARMGD", "ATAKP", "AVOD", "BALSU", "BESLR", "BIGCH", "BORSK", "BYDNR", "CEMZY", "DARDL", "DMRGD", "DUNYH", "DURKN", "EFOR", "EKIZ", "EKSUN", "ELITE", "ETILR", "FADE", "FRIGO", "GOKNR", "GUNDG", "IZINV", "KAYSE", "KENT", "KRVGD", "KTSKR", "KUVVA", "LYDYE", "MERKO", "MEYSU", "OBAMS", "OFSYM", "OTTO", "OYLUM", "PENGD", "PETUN", "SEGMN", "SELVA", "SOKE", "TABGD", "TATGD", "TUKAS", "ULKER", "ULUUN", "VANGD", "YAPRK", "YYLGD"], "Havayolları ve Hizm.": ["CLEBI", "PGSUS", "TAVHL", "THYAO"], "Hayvancılık": ["BANVT", "OZSUB"], "Holdingler": ["AGHOL", "AKYHO", "ALARK", "ATSYH", "AVHOL", "BERA", "BINHO", "BRYAT", "COSMO", "DENGE", "DOHOL", "ECZYT", "EUHOL", "GLRYH", "GLYHO", "GSDHO", "HEDEF", "IEYHO", "IHLAS", "INVEO", "INVES", "ISBIR", "KCHOL", "KERVN", "KLRHO", "LRSHO", "LYDHO", "MARKA", "METRO", "MMCAS", "NTHOL", "PAHOL", "POLHO", "SAHOL", "TEHOL", "TRHOL", "VERUS", "YESIL"], "Kablo": ["ALVES", "GEREL", "PRKAB"], "Kağıt Ürünleri": ["ALKA", "BAKAB", "BARMA", "DURDO", "KAPLM", "KARTN", "KONKA", "KRPLS", "LILAK", "MNDTR", "ORMA", "PRZMA", "SAMAT", "TEZOL", "VKING"], "Kimyasal Ürün": ["ACSEL", "ALKIM", "BAHKM", "BNTAS", "FRMPL", "GEDZA", "ISKPL", "KMPUR", "MARMR", "MERCN", "OZRDN", "POLTK", "RNPOL", "SANFM", "SEKUR", "SEYKM", "SODSN", "TMPOL"], "Kırtasiye": ["ADEL", "GIPTA"], "Madencilik": ["CVKMD", "MARBL", "PRKME", "RUZYE", "TRALT", "TRMET", "VSNMD"], "Medya": ["BIGTK", "CEOEM", "HURGZ", "IHAAS", "IHGZT", "IHYAY", "PCILT"], "Meşrubat İçecek": ["AEFES", "CCOLA", "ERSU", "KNFRT", "KRSTL", "ORCAY", "PINSU", "PNSUT", "TBORG"], "Mobilya": ["DGNMO", "GENTS", "KLSYN", "SUMAS", "YATAS", "YONGA"], "Otomotiv": ["ASUZU", "DOAS", "FROTO", "KARSN", "OTKAR", "TMSN", "TOASO", "TTRAK"], "Otomotiv Lastiği": ["BRISA", "GOODY"], "Otomotiv Parçası": ["BALAT", "BFREN", "DITAS", "DOKTA", "EGEEN", "FMIZP", "JANTS", "KATMR", "PARSN", "TUCLK", "YIGIT"], "Pazarlama": ["SANKO", "TGSAS"], "Perakande - Ticaret": ["BIMAS", "BIZIM", "CASA", "CRFSA", "EBEBK", "GMTAS", "GRTHO", "KIMMR", "MGROS", "MOPAS", "PSDTC", "SOKM", "TKNSA", "VAKKO"], "Petrol": ["AYGAZ", "MEPET", "NTGAZ", "PETKM", "TRCAS", "TUPRS"], "Savunma": ["ALTNY", "ASELS", "ONRYT", "SDTTR"], "Sağlık ve İlaç": ["ANGEN", "DEVA", "ECILC", "EGEPO", "GENIL", "LKMNH", "MEDTR", "MPARK", "ONCSM", "RTALB", "SELEC", "TNZTP", "TRILC"], "Seramik": ["BIENY", "EGSER", "KLKIM", "KLSER", "KUTPO", "USAK"], "Sigorta": ["AGESA", "AKGRT", "ANHYT", "ANSGR", "RAYSG", "TURSG"], "Spor": ["BJKAS", "FENER", "GSRAY", "TSPOR"], "Tarım Kimya": ["BAGFS", "EGGUB", "GUBRF", "HEKTS", "TARKM"], "Teknoloji": ["ARDYZ", "ATATP", "AZTEK", "DOFRB", "EDATA", "ESCOM", "FONET", "FORTE", "INTEK", "KFEIN", "KRONT", "LINK", "LOGO", "MANAS", "MIATK", "MTRKS", "OBASE", "ODINE", "PAPIL", "PATEK", "PKART", "SMART", "VBTYZ"], "Tekstil Entegre": ["ARSAN", "ARTMS", "ATEKS", "BAYRK", "BLCYT", "BOSSA", "BRKO", "BRMEN", "DAGI", "DIRIT", "HATEK", "ISSEN", "KOTON", "KRTEK", "LUKSK", "MAVI", "MEGAP", "MNDRS", "RALYH", "RODRG", "RUBNS", "SKTAS", "SNPAM", "SONME", "SUNTK", "SUWEN", "YUNSA"], "Turizm": ["AVTUR", "AYCES", "BLUME", "GZNMI", "KSTUR", "MAALT", "MARTI", "MERIT", "PKENT", "TEKTU", "ULAS"], "Ulaştırma-Loj": ["BEYAZ", "BINBN", "BORLS", "DOCO", "ESCAR", "GRSEL", "GSDDE", "HATSN", "HOROZ", "LIDER", "PASEU", "PLTUR", "RYSAS", "TLMAN", "TUREX"], "Varlık Yönetim": ["BRKVY", "GLCVY", "SMRVA"], "Yatırım Ortaklıkları": ["ATLAS", "BULGS", "ETYAT", "EUKYO", "EUYO", "GOZDE", "GRNYO", "HDFGS", "HUBVC", "ICUGS", "ISGSY", "ISYAT", "MTRYO", "OYAYO", "PRDGS", "VERTU", "VKFYO"], "Çimento": ["AFYON", "AKCNS", "BASCM", "BOBET", "BSOKE", "BTCIM", "BUCIM", "CIMSA", "CMBTN", "CMENT", "GOLTS", "KONYA", "LMKDC", "NIBAS", "NUHCM", "OYAKC"], "İletişim": ["MOBTL", "TCELL", "TTKOM"], "İletişim Cihaz": ["ALCTL", "KAREL", "NETAS", "REEDR"], "İnşaat Malz": ["ANELE", "AYES", "BRKSN", "BRLSM", "BURVA", "BVSAN", "DNISI", "DOGUB", "EGPRO", "EPLAS", "FORMT", "INTEM", "KBORU", "MAKTK", "MEGMT", "MEKAG", "MZHLD", "PNLSN", "QUAGR", "SARKY", "SERNT", "YBTAS"], "İnşaat-Taahhüt": ["AKFIS", "ENKAI", "GLRMK", "KUYAS", "TKFEN", "YEOTK", "YYAPI"], "BIST Temettü 25": ["AGHOL", "AKBNK", "AKSA", "ALARK", "ANHYT", "ASTOR", "BIMAS", "BRYAT", "CCOLA", "DOAS", "DOHOL", "ENKAI", "FROTO", "GARAN", "ISCTR", "ISMEN", "KCHOL", "MAVI", "MGROS", "SISE", "TCELL", "TOASO", "TTRAK", "TUPRS", "TURSG"], "Küçük Sermaye": ["DIRIT", "EMNIS", "EUYO", "YONGA", "GLBMD", "SNPAM", "ATAGY", "IDGYO", "BRMEN", "ETYAT", "EUKYO", "AGYO", "KRTEK", "SODSN", "RODRG", "MTRYO", "CASA", "SANKO", "CUSAN", "VKING", "MZHLD", "INTEK", "ATEKS", "DESPC", "SILVR", "TSGYO", "LUKSK", "VKFYO", "YBTAS", "AKYHO", "EKIZ", "SANEL", "OYLUM", "SONME", "ATSYH", "BAKAB", "AVTUR", "OYAYO", "CEOEM", "DERIM", "SUMAS", "BRKSN", "IHEVA", "SAMAT", "DGGYO", "MEGAP", "OBASE", "QNBFK", "ATLAS", "ERSU", "ORMA", "IHYAY", "DOFER", "ORCAY", "SEKFK", "YKSLN", "FADE", "ULAS", "ZEDUR", "PAMEL", "GRNYO", "EYGYO", "BASCM", "ISSEN", "KNFRT", "INTEM", "ACSEL", "IHGZT", "SKYMD", "KENT", "KRPLS", "KRGYO", "HATEK", "AVGYO", "MAKIM", "BEYAZ", "MEDTR", "PSDTC", "OZGYO", "CMENT", "GSDDE", "BIZIM", "VERTU", "GEDZA", "EGSER", "TLMAN", "DOKTA", "BYDNR", "MARBL", "KERVN", "UNLU", "DURDO", "ARTMS", "SEYKM", "MEPET", "ANGEN", "KLNMA", "HUBVC", "ETILR", "DZGYO", "RNPOL", "KLMSN", "IZINV", "DURKN", "FLAP", "EPLAS", "COSMO", "ISYAT", "PRKME", "BAYRK", "FMIZP", "PRDGS", "PNLSN", "SERNT", "BNTAS", "DMSAS", "AKMGY", "INGRM", "GARFA", "OSMEN", "YESIL", "MTRKS", "MSGYO", "KUTPO", "EKSUN", "HKTM", "SEGYO", "MHRGY", "HURGZ", "MMCAS", "BOSSA", "MNDTR", "CELHA", "AVHOL", "ICBCT", "DNISI", "SKTAS", "ARZUM", "SEKUR", "BALAT", "GOODY", "YAYLA", "SMART", "TDGYO", "KIMMR", "MARKA", "PINSU", "TURGG", "BMSCH", "PKART", "AVOD", "KZGYO", "TUCLK", "MEKAG", "RUBNS", "AZTEK", "OZSUB", "DGATE", "KONKA", "BEGYO", "ISBIR", "EDIP", "VBTYZ", "ENPRA", "PKENT", "ELITE", "ULUSE", "ULUFA", "DAGI", "CONSE", "YAPRK", "BANVT", "OFSYM", "DESA", "ONRYT", "PETUN", "CATES", "ALCAR", "SNICA", "KLSYN", "OZRDN", "DENGE", "MACKO", "PRKAB", "KFEIN", "PLTUR", "FRMPL", "OZYSR", "PCILT", "RTALB", "INVEO", "DYOBY", "OTTO", "MERKO", "OSTIM", "BRKVY", "VRGYO", "ATAKP", "MAKTK", "ZGYO", "MERIT", "GEDIK", "LIDFA", "KOPOL", "KRSTL", "QNBTR", "BIGTK", "BRKO", "ARFYE", "KOCMT", "NIBAS", "ALKA", "BESTE", "ENSRI", "AKHAN", "BLCYT", "AYCES", "NETAS", "NUGYO", "DARDL", "BVSAN", "EMPAE", "PNSUT", "EUHOL", "YUNSA", "GLCVY", "KOTON", "SANFM", "AYEN", "DGNMO", "BRLSM", "IHLGM", "ALCTL", "BIGCH", "DOGUB", "HOROZ", "KTSKR", "A1YEN", "MNDRS", "DERHL", "VAKKO", "MERCN", "CGCAM", "RAYSG", "UCAYM", "YYAPI", "GENKM", "SKYLP", "ARENA", "KRVGD", "DITAS", "AKENR", "ASGYO", "TGSAS", "SELVA", "YGYO", "INFO", "HRKET", "TATGD", "GLRYH", "EGEPO", "ENDAE", "DCTTR", "SOKE", "PRZMA", "BIENY"], "Tüm 500'ler": ["AHGAZ", "AKCNS", "AKFYE", "AKSA", "AKSEN", "ALFAS", "ALKA", "ALKIM", "ALKLC", "ARCLK", "ARENA", "ARMDA", "ARMGD", "ARZUM", "ASELS", "ASTOR", "ASUZU", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAKAB", "BANVT", "BARMA", "BASGZ", "BIENY", "BIMAS", "BIZIM", "BOBET", "BORSK", "BRISA", "BRLSM", "BRSAN", "BSOKE", "BTCIM", "BUCIM", "CARES", "CCOLA", "CELHA", "CEMTS", "CIMSA", "CLEBI", "CRFSA", "CWENE", "DARDL", "DEVA", "DGNMO", "DOAS", "DOKTA", "DYOBY", "EBEBK", "ECILC", "EFORC", "EGEEN", "EGPRO", "EGSER", "EKSUN", "ENERY", "ENJSA", "ENKAI", "ERBOS", "ERCB", "EREGL", "EUPWR", "EUREN", "FROTO", "GENIL", "GESAN", "GLRMK", "GOKNR", "GOLTS", "GOODY", "GRSEL", "GUBRF", "HEKTS", "HOROZ", "INDES", "ISDMR", "ISSEN", "IZDMR", "IZENR", "JANTS", "KAREL", "KARSN", "KAYSE", "KCAER", "KENT", "KERVT", "KLKIM", "KLSER", "KLYPV", "KMPUR", "KOCMT", "KONKA", "KONYA", "KOPOL", "KORDS", "KORDSA", "KOTON", "KOZAL", "KRDMD", "KRTEK", "KRVGD", "LILAK", "LMKDC", "MAKIM", "MAVI", "MEGMT", "MGMTL", "MGROS", "MNDTR", "MOGAN", "MOPAS", "NTGAZ", "NUHCM", "OBAMS", "ODAS", "OFSYM", "OTKAR", "OYAKC", "OZRDN", "OZYSR", "PARSN", "PCILT", "PENTA", "PETKM", "PETUN", "PGSUS", "PNLSN", "PNSUT", "QUAGR", "RYSAS", "SARKY", "SASA", "SELEC", "SERNT", "SISE", "SMRTG", "SNICA", "SOKE", "SOKM", "SUNTK", "TABGD", "TATGD", "TAVHL", "TCELL", "TEZOL", "THYAO", "TKFEN", "TKNSA", "TMSN", "TOASO", "TRILC", "TTCOM", "TTKOM", "TTRAK", "TUKAS", "TUPRS", "ULKER", "ULUUN", "USAK", "VAKKO", "VESBE", "VESTL", "YATAS", "YEOTK", "YIGIT", "YUNSA", "YYLGD", "ZOREN"], "GÖZDE": ["LMKDC", "LILAK", "BORSK", "VAKKO", "BYDNR", "BOBET", "KMPUR", "DGNMO", "PNLSN", "KOCMT", "KOTON", "RUBNS", "KLSER", "GESAN", "EUPWR", "SNICA", "AGROT", "BINHO", "TUPRS", "EREGL", "VESBE", "TTRAK", "CLEBI", "AVPGY", "DOAS", "KCHOL", "AKSA", "ANHYT", "NUHCM", "EGPRO", "AYEN"], "Elimdekiler": ["LMKDC", "LILAK", "AVPGY", "KMPUR", "DOAS", "TTRAK", "CLEBI"], "Zirve-Dip": ["AGESA", "AKBNK", "ALARK", "ALBRK", "ALGYO", "ALKIM", "ANHYT", "ANSGR", "AYGAZ", "BIMAS", "CCOLA", "DEVA", "DMSAS", "DOHOL", "ECILC", "ECZYT", "EGGUB", "EGPRO", "ENKAI", "EREGL", "FROTO", "GENTS", "ISDMR", "ISMEN", "ISYAT", "KCHOL", "NUHCM", "OYAKC", "PAGYO", "SAHOL", "SISE", "TBORG", "TCELL", "TRALT", "TRENJ", "TRMET", "YGGYO", "ENJSA", "GWIND", "ZRGYO", "KLKIM", "TEZOL", "GLCVY", "HTTBT", "GRSEL", "KLSYN", "BMSTL", "PLTUR", "AHGAZ", "MACKO", "PASEU", "ENERY", "ADGYO", "MHRGY", "TABGD", "AVPGY", "LMKDC", "ENTRA", "RGYAS", "LILAK", "OZYSR", "ALKLC"]};
         const allSymbols = ["A1CAP", "A1YEN", "ACSEL", "ADEL", "ADESE", "ADGYO", "AEFES", "AFYON", "AGESA", "AGHOL", "AGROT", "AGYO", "AHGAZ", "AHSGY", "AKBNK", "AKCNS", "AKENR", "AKFGY", "AKFIS", "AKFYE", "AKGRT", "AKHAN", "AKMGY", "AKSA", "AKSEN", "AKSGY", "AKSUE", "AKYHO", "ALARK", "ALBRK", "ALCAR", "ALCTL", "ALFAS", "ALGYO", "ALKA", "ALKIM", "ALKLC", "ALTINS1", "ALTNY", "ALVES", "ANELE", "ANGEN", "ANHYT", "ANSGR", "ARASE", "ARCLK", "ARDYZ", "ARENA", "ARFYE", "ARMGD", "ARSAN", "ARTMS", "ARZUM", "ASELS", "ASGYO", "ASTOR", "ASUZU", "ATAGY", "ATAKP", "ATATP", "ATATR", "ATEKS", "ATLAS", "ATSYH", "AVGYO", "AVHOL", "AVOD", "AVPGY", "AVTUR", "AYCES", "AYDEM", "AYEN", "AYES", "AYGAZ", "AZTEK", "BAGFS", "BAHKM", "BAKAB", "BALAT", "BALSU", "BANVT", "BARMA", "BASCM", "BASGZ", "BAYRK", "BEGYO", "BERA", "BESLR", "BESTE", "BEYAZ", "BFREN", "BIENY", "BIGCH", "BIGEN", "BIGTK", "BIMAS", "BINBN", "BINHO", "BIOEN", "BIZIM", "BJKAS", "BLCYT", "BLUME", "BMSCH", "BMSTL", "BNTAS", "BOBET", "BORLS", "BORSK", "BOSSA", "BRISA", "BRKO", "BRKSN", "BRKVY", "BRLSM", "BRMEN", "BRSAN", "BRYAT", "BSOKE", "BTCIM", "BUCIM", "BULGS", "BURCE", "BURVA", "BVSAN", "BYDNR", "CANTE", "CASA", "CATES", "CCOLA", "CELHA", "CEMAS", "CEMTS", "CEMZY", "CEOEM", "CGCAM", "CIMSA", "CLEBI", "CMBTN", "CMENT", "CONSE", "COSMO", "CRDFA", "CRFSA", "CUSAN", "CVKMD", "CWENE", "DAGI", "DAPGM", "DARDL", "DCTTR", "DENGE", "DERHL", "DERIM", "DESA", "DESPC", "DEVA", "DGATE", "DGGYO", "DGNMO", "DIRIT", "DITAS", "DMLKTG", "DMRGD", "DMSAS", "DNISI", "DOAS", "DOCO", "DOFER", "DOFRB", "DOGUB", "DOHOL", "DOKTA", "DSTKF", "DUNYH", "DURDO", "DURKN", "DYOBY", "DZGYO", "EBEBK", "ECILC", "ECOGR", "ECZYT", "EDATA", "EDIP", "EFOR", "EGEEN", "EGEGY", "EGEPO", "EGGUB", "EGPRO", "EGSER", "EKGYO", "EKIZ", "EKOS", "EKSUN", "ELITE", "EMKEL", "EMNIS", "EMPAE", "ENDAE", "ENERY", "ENJSA", "ENKAI", "ENSRI", "ENTRA", "EPLAS", "ERBOS", "ERCB", "EREGL", "ERSU", "ESCAR", "ESCOM", "ESEN", "ETILR", "ETYAT", "EUHOL", "EUKYO", "EUPWR", "EUREN", "EUYO", "EYGYO", "FADE", "FENER", "FLAP", "FMIZP", "FONET", "FORMT", "FORTE", "FRIGO", "FRMPL", "FROTO", "FZLGY", "GARAN", "GARFA", "GATEG", "GEDIK", "GEDZA", "GENIL", "GENKM", "GENTS", "GEREL", "GESAN", "GIPTA", "GLBMD", "GLCVY", "GLRMK", "GLRYH", "GLYHO", "GMTAS", "GOKNR", "GOLTS", "GOODY", "GOZDE", "GRNYO", "GRSEL", "GRTHO", "GSDDE", "GSDHO", "GSRAY", "GUBRF", "GUNDG", "GWIND", "GZNMI", "HALKB", "HATEK", "HATSN", "HDFGS", "HEDEF", "HEKTS", "HKTM", "HLGYO", "HOROZ", "HRKET", "HTTBT", "HUBVC", "HUNER", "HURGZ", "ICBCT", "ICUGS", "IDGYO", "IEYHO", "IHAAS", "IHEVA", "IHGZT", "IHLAS", "IHLGM", "IHYAY", "IMASM", "INDES", "INFO", "INGRM", "INTEK", "INTEM", "INVEO", "INVES", "ISATR", "ISBIR", "ISBTR", "ISCTR", "ISDMR", "ISFIN", "ISGSY", "ISGYO", "ISKPL", "ISKUR", "ISMEN", "ISSEN", "ISYAT", "IZENR", "IZFAS", "IZINV", "IZMDC", "JANTS", "KAPLM", "KAREL", "KARSN", "KARTN", "KATMR", "KAYSE", "KBORU", "KCAER", "KCHOL", "KENT", "KERVN", "KFEIN", "KGYO", "KIMMR", "KLGYO", "KLKIM", "KLMSN", "KLNMA", "KLRHO", "KLSER", "KLSYN", "KLYPV", "KMPUR", "KNFRT", "KOCMT", "KONKA", "KONTR", "KONYA", "KOPOL", "KORDS", "KOTON", "KRDMA", "KRDMB", "KRDMD", "KRGYO", "KRONT", "KRPLS", "KRSTL", "KRTEK", "KRVGD", "KSTUR", "KTLEV", "KTSKR", "KUTPO", "KUVVA", "KUYAS", "KZBGY", "KZGYO", "LIDER", "LIDFA", "LILAK", "LINK", "LKMNH", "LMKDC", "LOGO", "LRSHO", "LUKSK", "LXGYO", "LYDHO", "LYDYE", "MAALT", "MACKO", "MAGEN", "MAKIM", "MAKTK", "MANAS", "MARBL", "MARKA", "MARMR", "MARTI", "MAVI", "MCARD", "MEDTR", "MEGAP", "MEGMT", "MEKAG", "MEPET", "MERCN", "MERIT", "MERKO", "METRO", "MEYSU", "MGROS", "MHRGY", "MIATK", "MMCAS", "MNDRS", "MNDTR", "MOBTL", "MOGAN", "MOPAS", "MPARK", "MRGYO", "MRSHL", "MSGYO", "MTRKS", "MTRYO", "MZHLD", "NATEN", "NETAS", "NETCD", "NIBAS", "NTGAZ", "NTHOL", "NUGYO", "NUHCM", "OBAMS", "OBASE", "ODAS", "ODINE", "OFSYM", "ONCSM", "ONRYT", "ORCAY", "ORGE", "ORMA", "OSMEN", "OSTIM", "OTKAR", "OTTO", "OYAKC", "OYAYO", "OYLUM", "OYYAT", "OZATD", "OZGYO", "OZKGY", "OZRDN", "OZSUB", "OZYSR", "PAGYO", "PAHOL", "PAMEL", "PAPIL", "PARSN", "PASEU", "PATEK", "PCILT", "PEKGY", "PENGD", "PENTA", "PETKM", "PETUN", "PGSUS", "PINSU", "PKART", "PKENT", "PLTUR", "PNLSN", "PNSUT", "POLHO", "POLTK", "PRDGS", "PRKAB", "PRKME", "PRZMA", "PSDTC", "PSGYO", "QNBFK", "QNBTR", "QUAGR", "RALYH", "RAYSG", "REEDR", "RGYAS", "RNPOL", "RODRG", "RTALB", "RUBNS", "RUZYE", "RYGYO", "RYSAS", "SAFKR", "SAHOL", "SAMAT", "SANEL", "SANFM", "SANKO", "SARKY", "SASA", "SAYAS", "SDTTR", "SEGMN", "SEGYO", "SEKFK", "SEKUR", "SELEC", "SELVA", "SERNT", "SEYKM", "SILVR", "SISE", "SKBNK", "SKTAS", "SKYLP", "SKYMD", "SMART", "SMRTG", "SMRVA", "SNGYO", "SNICA", "SNPAM", "SODSN", "SOKE", "SOKM", "SONME", "SRVGY", "SUMAS", "SUNTK", "SURGY", "SUWEN", "SVGYO", "TABGD", "TARKM", "TATEN", "TATGD", "TAVHL", "TBORG", "TCELL", "TCKRC", "TDGYO", "TEHOL", "TEKTU", "TERA", "TEZOL", "TGSAS", "THYAO", "TKFEN", "TKNSA", "TLMAN", "TMPOL", "TMSN", "TNZTP", "TOASO", "TRALT", "TRCAS", "TRENJ", "TRGYO", "TRHOL", "TRILC", "TRMET", "TSGYO", "TSKB", "TSPOR", "TTKOM", "TTRAK", "TUCLK", "TUKAS", "TUPRS", "TUREX", "TURGG", "TURSG", "UCAYM", "UFUK", "ULAS", "ULKER", "ULUFA", "ULUSE", "ULUUN", "UMPAS", "UNLU", "USAK", "VAKBN", "VAKFA", "VAKFN", "VAKKO", "VANGD", "VBTYZ", "VERTU", "VERUS", "VESBE", "VESTL", "VKFYO", "VKGYO", "VKING", "VRGYO", "VSNMD", "YAPRK", "YATAS", "YAYLA", "YBTAS", "YEOTK", "YESIL", "YGGYO", "YIGIT", "YKBNK", "YKSLN", "YONGA", "YUNSA", "YYAPI", "YYLGD", "ZEDUR", "ZERGY", "ZGYO", "ZOREN", "ZRGYO"];
         const randomSymbol = allSymbols[Math.floor(Math.random() * allSymbols.length)];
         let currentSymbol = randomSymbol; 
@@ -987,6 +1081,66 @@
         let activeTimeRange = '5Y';
         let isMeasureMode = false;
         let customListKeys = new Set();
+
+        // ===== CLIENT-SIDE VERİ CACHE'İ =====
+        // Her sembol için { rawData, tvRawData, ts } saklar; 5 dakika geçerliliği var
+        const _dataCache = {};
+        const _DATA_CACHE_TTL = 5 * 60 * 1000; // 5 dakika
+        const _inFlight = {}; // uçtaki istekler — aynı sembol için duplicate fetch önler
+
+        async function _fetchAndCache(symbol, years) {
+            const _years = years || 10;
+
+            // Zaten uçtaki bir istek varsa onu bekle (duplicate fetch önleme)
+            if (_inFlight[symbol]) return _inFlight[symbol];
+
+            const p = (async () => {
+                // /analyze kritik, /tvdata opsiyonel — ayrı başlat
+                const analyzePromise = fetch(apiUrl(`/analyze?s=${symbol}&years=${_years}`));
+                const tvPromise = fetch(apiUrl(`/tvdata?s=${symbol}`))
+                    .then(r => r.json())
+                    .then(d => (d && !d.error) ? d : null)
+                    .catch(() => null);
+
+                let rData;
+                try {
+                    const resp = await analyzePromise;
+                    rData = await resp.json();
+                } catch(_) { return null; }
+                finally { delete _inFlight[symbol]; }
+                if (!rData || rData.error) return null;
+                rData._loadedYears = _years;
+
+                _dataCache[symbol] = { rawData: rData, tvRawData: null, ts: Date.now(), years: _years, _tvPromise: tvPromise };
+                tvPromise.then(tvData => {
+                    if (_dataCache[symbol]) _dataCache[symbol].tvRawData = tvData;
+                });
+                return _dataCache[symbol];
+            })();
+
+            _inFlight[symbol] = p;
+            return p;
+        }
+
+        // Prefetch kuyruğu — arka planda sırayla çeker, aktif loadData'yı engellemez
+        let _prefetchQueue = [];
+        let _prefetchRunning = false;
+        async function _runPrefetchQueue() {
+            if (_prefetchRunning) return;
+            _prefetchRunning = true;
+            while (_prefetchQueue.length > 0) {
+                const sym = _prefetchQueue.shift();
+                const cached = _dataCache[sym];
+                if (!cached || (Date.now() - cached.ts) > _DATA_CACHE_TTL) {
+                    if (!_inFlight[sym]) {
+                        await _fetchAndCache(sym, 10).catch(() => {});
+                    }
+                }
+                // Her prefetch arasına kısa bekleme — aktif isteği bastırmasın
+                await new Promise(r => setTimeout(r, 150));
+            }
+            _prefetchRunning = false;
+        }
 
         const timeRangeMap = {
             '1H': {unit: 'days', value: 7},
@@ -1114,19 +1268,16 @@
         function schedulePrefetch(currentIdx) {
             clearTimeout(window._prefetchTimer);
             window._prefetchTimer = setTimeout(() => {
-                const priority = [1, 2];
-                const prioritySymbols = priority
+                // Önce mevcut kuyruğu temizle, yeni sırayı kur
+                _prefetchQueue = [1, 2, -1, 3, -2]
                     .map(offset => activeList[(currentIdx + offset + activeList.length) % activeList.length])
-                    .filter(Boolean).join(',');
-                if (prioritySymbols) fetch(apiUrl('/prefetch?s=' + prioritySymbols)).catch(() => {});
-                setTimeout(() => {
-                    const secondary = [-1, -2, 3];
-                    const secondarySymbols = secondary
-                        .map(offset => activeList[(currentIdx + offset + activeList.length) % activeList.length])
-                        .filter(Boolean).join(',');
-                    if (secondarySymbols) fetch(apiUrl('/prefetch?s=' + secondarySymbols)).catch(() => {});
-                }, 600);
-            }, 300);
+                    .filter(Boolean)
+                    .filter(sym => {
+                        const c = _dataCache[sym];
+                        return !_inFlight[sym] && (!c || (Date.now() - c.ts) > _DATA_CACHE_TTL);
+                    });
+                _runPrefetchQueue();
+            }, 500);
         }
 
         function saveCustomLists() {
@@ -1273,11 +1424,89 @@
                     rBtn.classList.remove('red-starred');
                 }
             }
+            updateQuickListUI();
         }
 
         function updateSymbolIndex() {
             const idx = activeList.indexOf(currentSymbol);
             document.getElementById('symbolIdx').textContent = idx === -1 ? '0' : (idx + 1);
+        }
+
+        // ===== HIZLI LİSTELER =====
+        // Her listenin localStorage anahtarı ve select'teki id'si
+        const QUICK_LISTS = [
+            { name: 'Eldeki',   key: 'borsaQL_Eldeki',   btnId: 'ql-Eldeki'   },
+            { name: 'Temettu',   key: 'borsaQL_Tem35',    btnId: 'ql-Temettu'   },
+            { name: 'Tem5+',    key: 'borsaQL_Tem5plus',  btnId: 'ql-Tem5plus' },
+            { name: 'Küçük',    key: 'borsaQL_Kucuk',    btnId: 'ql-Kucuk'    },
+            { name: 'Orta',     key: 'borsaQL_Orta',     btnId: 'ql-Orta'     },
+            { name: 'Popüler',  key: 'borsaQL_Populer',  btnId: 'ql-Populer'  },
+            { name: 'Borçsuz',  key: 'borsaQL_Borcsuz',  btnId: 'ql-Borcsuz'  },
+            { name: 'Karda',    key: 'borsaQL_Karda',    btnId: 'ql-Karda'    },
+            { name: 'Ucuz',  key: 'borsaQL_PDDD',     btnId: 'ql-PDDD'     },
+            { name: 'Yabancı',key: 'borsaQL_Yabanci5', btnId: 'ql-Yabanci'  },
+        ];
+
+        function loadQuickLists() {
+            const sel = document.getElementById('listSelect');
+            QUICK_LISTS.forEach(ql => {
+                try {
+                    const saved = localStorage.getItem(ql.key);
+                    const arr = saved ? JSON.parse(saved) : [];
+                    symbolLists[ql.name] = arr;
+                    // Select'e ekle (varsa önce kaldır)
+                    for (let i = sel.options.length - 1; i >= 0; i--) {
+                        if (sel.options[i].value === ql.name) { sel.remove(i); break; }
+                    }
+                    const opt = document.createElement('option');
+                    opt.text = ql.name + ' (' + arr.length + ')';
+                    opt.value = ql.name;
+                    // Yıldızlı'dan sonraya ekle
+                    const yildizliIdx = Array.from(sel.options).findIndex(o => o.value === 'Yıldızlı');
+                    if (yildizliIdx !== -1) sel.add(opt, yildizliIdx + 1);
+                    else sel.insertBefore(opt, sel.options[0]);
+                } catch(e) { console.warn('Hızlı liste yükleme hatası:', ql.name, e); }
+            });
+        }
+
+        function saveQuickList(qlName) {
+            const ql = QUICK_LISTS.find(q => q.name === qlName);
+            if (!ql) return;
+            try {
+                const arr = symbolLists[qlName] || [];
+                localStorage.setItem(ql.key, JSON.stringify(arr));
+                // Select text güncelle
+                const sel = document.getElementById('listSelect');
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === qlName) {
+                        sel.options[i].text = qlName + ' (' + arr.length + ')';
+                        break;
+                    }
+                }
+            } catch(e) { console.warn('Hızlı liste kayıt hatası:', qlName, e); }
+        }
+
+        function toggleQuickList(qlName) {
+            const arr = symbolLists[qlName] || [];
+            const idx = arr.indexOf(currentSymbol);
+            if (idx === -1) arr.push(currentSymbol);
+            else arr.splice(idx, 1);
+            symbolLists[qlName] = arr;
+            saveQuickList(qlName);
+            updateQuickListUI();
+        }
+
+        function updateQuickListUI() {
+            QUICK_LISTS.forEach(ql => {
+                const btn = document.getElementById(ql.btnId);
+                if (!btn) return;
+                const arr = symbolLists[ql.name] || [];
+                if (arr.includes(currentSymbol)) {
+                    btn.classList.add('ql-active');
+                } else {
+                    btn.classList.remove('ql-active');
+                }
+            });
         }
 
         // --- HİSSE LİSTESİ DROPDOWN ---
@@ -1463,9 +1692,11 @@
 
             // Yön: kullanıcı yukarı mı aşağı mı çizdi?
             const isUp = dEnd.y > _measureStartDataY;
-            const pct = isUp ? ((y1 - y0) / y0) * 100 : -((y1 - y0) / y0) * 100;
+            // Oran her zaman başlangıç fiyatı baz alınarak hesaplanır
+            const basePrice = _measureStartDataY;
+            const pct = ((dEnd.y - basePrice) / Math.abs(basePrice)) * 100;
             const days = Math.abs(Math.round((new Date(x1) - new Date(x0)) / 86400000));
-            const colorFill = pct >= 0 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
+            const colorFill = pct >= 0 ? 'rgba(16,185,129,0.70)' : 'rgba(239,68,68,0.70)';
 
             const existingShapes = (chartDiv.layout.shapes || []).slice();
             const newShape = {
@@ -2062,6 +2293,12 @@
 <br><span style="font-size:12px; color:${periodColor};">\u{1F4C5} ${activeTimeRange} Getiri: ${periodPrefix}%${f2(periodReturn)}</span>`;
                     Plotly.relayout('chart', { title: { text: clickedTitleHTML, x: 0.5, y: 0.95, font: {size: 14} } });
                 });
+
+                // Ölçüm modu aktifse yeni grafik çizildikten sonra listener'ları yeniden bağla
+                if (isMeasureMode) {
+                    _detachMeasureListeners(chartDiv);
+                    setTimeout(() => { _attachMeasureListeners(chartDiv); }, 50);
+                }
             });
         }
 
@@ -2192,6 +2429,9 @@
         }
 
         async function loadData(years) {
+            // Aktif isteğe öncelik ver: prefetch kuyruğunu durdur
+            _prefetchQueue = [];
+
             document.getElementById('loader').style.display = 'block';
             tvRawData = null;
             isUsdMode = false;
@@ -2212,71 +2452,25 @@
 
             try {
                 const _years = years || 10;
-                const [analyzeSettled, tvSettled] = await Promise.allSettled([
-                    fetch(apiUrl(`/analyze?s=${currentSymbol}&years=${_years}`)),
-                    fetch(apiUrl(`/tvdata?s=${currentSymbol}`))
-                ]);
+                const sym = currentSymbol;
 
-                // /analyze başarısız olduysa devam edemeyiz (grafik verisi yok)
-                if (analyzeSettled.status === 'rejected') {
-                    alert("Ana veri çekilemedi. Lütfen tekrar deneyin.");
-                    return;
-                }
-                rawData = await analyzeSettled.value.json();
-                rawData._loadedYears = _years;
-                if (rawData.error) { alert(rawData.error); return; }
+                // Cache'de taze veri varsa fetch atlamak yerine doğrudan kullan
+                const cached = _dataCache[sym];
+                const cacheValid = cached && (Date.now() - cached.ts) < _DATA_CACHE_TTL && (cached.years || 10) >= _years;
 
-                // /tvdata isteğe bağlı — başarısız olursa sessizce atla
-                tvRawData = null;
-                if (tvSettled.status === 'fulfilled') {
-                    try {
-                        tvRawData = await tvSettled.value.json();
-                        if (tvRawData && tvRawData.error) tvRawData = null;
-                    } catch(_) { tvRawData = null; }
+                if (cacheValid) {
+                    rawData   = cached.rawData;
+                    tvRawData = cached.tvRawData;
+                } else {
+                    const result = await _fetchAndCache(sym, _years);
+                    if (!result) { alert("Ana veri çekilemedi. Lütfen tekrar deneyin."); return; }
+                    rawData   = result.rawData;
+                    tvRawData = result.tvRawData;
                 }
+
+                // tvData henüz gelmemişse arka planda bekle — grafik çiziminden sonra işlenecek
 
                 let cariItems = [...rawData.cari];
-
-                if (tvRawData && !tvRawData.error) {
-                    if (tvRawData['Son Fiyat'] !== null && tvRawData['Son Fiyat'] !== undefined) {
-                        rawData.chart.last_price = tvRawData['Son Fiyat'];
-                    }
-                    if (tvRawData['Değişim %'] !== null && tvRawData['Değişim %'] !== undefined) {
-                        updateChangeFromTV(tvRawData['Değişim %']);
-                    }
-
-                    function fmtTVVal(key, val) {
-                        if (val === null || val === undefined) return '--';
-                        if (key === 'Net Kar') {
-                            const abs = Math.abs(val);
-                            const sign = val < 0 ? '-' : '';
-                            if (abs >= 1e9) return sign + (abs/1e9).toFixed(2) + ' Mr';
-                            if (abs >= 1e6) return sign + (abs/1e6).toFixed(2) + ' Mn';
-                            return val.toFixed(2);
-                        }
-                        if (key === 'Temettü Verimi %' || key === 'Faaliyet Kar Marjı %' || key === 'Özkaynak Karlılığı %') return val.toFixed(2) + '%';
-                        return typeof val === 'number' ? val.toFixed(2) : val;
-                    }
-
-                    const netBorcIdx = cariItems.findIndex(i => i.key.includes('Net Borç') || i.key.includes('Net Borc'));
-                    const netKarItem = { key: 'Net Kar', value: fmtTVVal('Net Kar', tvRawData['Net Kar']) };
-                    if (netBorcIdx !== -1) {
-                        cariItems.splice(netBorcIdx + 1, 0, netKarItem);
-                    } else {
-                        cariItems.push(netKarItem);
-                    }
-
-                    const tvTail = [
-                        { key: 'Temettü Verimi %',    val: tvRawData['Temettü Verimi %'] },
-                        { key: 'Cari Oran',            val: tvRawData['Cari Oran'] },
-                        { key: 'Beta (1Y)',            val: tvRawData['Beta (1Y)'] },
-                        { key: 'Faaliyet Kar Marjı %', val: tvRawData['Faaliyet Kar Marjı %'] },
-                        { key: 'Özkaynak Karlılığı %', val: tvRawData['Özkaynak Karlılığı %'] }
-                    ];
-                    tvTail.forEach(item => {
-                        cariItems.push({ key: item.key, value: fmtTVVal(item.key, item.val), rawVal: item.val });
-                    });
-                }
 
                 function getCariColor(key, value) {
                     const v = parseFloat(String(value).replace(',', '.').replace(/[^0-9.\-]/g, ''));
@@ -2312,6 +2506,19 @@
                 updateSymbolIndex();
                 // Önce grafik göster, sonra altın/dolar gelince başlığı güncelle
                 const _gYears = years || 10;
+
+                // tvData zaten geldiyse hemen uygula, yoksa gelince uygula
+                if (tvRawData) {
+                    _applyTVDataToUI(tvRawData);
+                } else if (_dataCache[sym] && _dataCache[sym]._tvPromise) {
+                    const _capturedSym = sym;
+                    _dataCache[sym]._tvPromise.then(tvData => {
+                        if (currentSymbol !== _capturedSym || !tvData) return;
+                        tvRawData = tvData;
+                        _applyTVDataToUI(tvData);
+                    });
+                }
+
                 changeTimeRange(activeTimeRange, false);
                 const _refreshTitle = () => { if (activeTimeRange) changeTimeRange(activeTimeRange, false); };
                 if (!goldData || (goldData.loadedYears || 0) < _gYears) {
@@ -2339,6 +2546,65 @@
                     valSpan.innerHTML = `<span class="${color}">${prefix}%${change.toFixed(2)}</span>`;
                 }
             });
+        }
+
+        // tvData geç geldiğinde cari paneli ve grafik başlığını günceller
+        function _applyTVDataToUI(tvData) {
+            if (!tvData || tvData.error || !rawData) return;
+
+            function fmtTVVal(key, val) {
+                if (val === null || val === undefined) return '--';
+                if (key === 'Net Kar') {
+                    const abs = Math.abs(val);
+                    const sign = val < 0 ? '-' : '';
+                    if (abs >= 1e9) return sign + (abs/1e9).toFixed(2) + ' Mr';
+                    if (abs >= 1e6) return sign + (abs/1e6).toFixed(2) + ' Mn';
+                    return val.toFixed(2);
+                }
+                if (key === 'Temettü Verimi %' || key === 'Faaliyet Kar Marjı %' || key === 'Özkaynak Karlılığı %') return val.toFixed(2) + '%';
+                return typeof val === 'number' ? val.toFixed(2) : val;
+            }
+            function getCariColor(key, value) {
+                const v = parseFloat(String(value).replace(',', '.').replace(/[^0-9.\-]/g, ''));
+                if (isNaN(v)) return '';
+                if (key === 'F/K') return (v >= 0 && v <= 20) ? 'val-pos' : 'val-neg';
+                if (key === 'PD/DD') return v < 2 ? 'val-pos' : 'val-neg';
+                if (key.includes('Yabancı')) return v > 1 ? 'val-pos' : 'val-neg';
+                if (key.includes('Halka Açıklık')) return v < 50 ? 'val-pos' : 'val-neg';
+                if (key === 'Cari Oran') return v > 1 ? 'val-pos' : 'val-neg';
+                if (key.includes('Net Borç')) return v < 0 ? 'val-pos' : 'val-neg';
+                if (key === 'Net Kar') return String(value).trim().startsWith('-') ? 'val-neg' : 'val-pos';
+                if (key === 'H.A. Borsa Değeri') return String(value).includes('Mn TL') ? 'val-pos' : '';
+                if (key === 'Temettü Verimi %') return v > 1 ? 'val-pos' : '';
+                if (key === 'Beta (1Y)') return v < 1 ? 'val-pos' : 'val-neg';
+                if (key === 'Faaliyet Kar Marjı %') return v >= 0 ? 'val-pos' : 'val-neg';
+                if (key === 'Özkaynak Karlılığı %') return v >= 0 ? 'val-pos' : 'val-neg';
+                return '';
+            }
+
+            if (tvData['Son Fiyat'] != null) rawData.chart.last_price = tvData['Son Fiyat'];
+            if (tvData['Değişim %'] != null) updateChangeFromTV(tvData['Değişim %']);
+
+            let cariItems = [...rawData.cari];
+            const netBorcIdx = cariItems.findIndex(i => i.key.includes('Net Borç') || i.key.includes('Net Borc'));
+            const netKarItem = { key: 'Net Kar', value: fmtTVVal('Net Kar', tvData['Net Kar']) };
+            if (netBorcIdx !== -1) cariItems.splice(netBorcIdx + 1, 0, netKarItem);
+            else cariItems.push(netKarItem);
+            [
+                { key: 'Temettü Verimi %',    val: tvData['Temettü Verimi %'] },
+                { key: 'Cari Oran',            val: tvData['Cari Oran'] },
+                { key: 'Beta (1Y)',            val: tvData['Beta (1Y)'] },
+                { key: 'Faaliyet Kar Marjı %', val: tvData['Faaliyet Kar Marjı %'] },
+                { key: 'Özkaynak Karlılığı %', val: tvData['Özkaynak Karlılığı %'] }
+            ].forEach(item => cariItems.push({ key: item.key, value: fmtTVVal(item.key, item.val), rawVal: item.val }));
+
+            document.getElementById('cari').innerHTML = cariItems.map(i => {
+                const colorClass = getCariColor(i.key, i.value);
+                return `<div class="info-item"><span>${i.key}</span><span class="${colorClass}">${i.value}</span></div>`;
+            }).join('');
+
+            // Grafik başlığını fiyatla güncelle
+            if (activeTimeRange) changeTimeRange(activeTimeRange, false);
         }
 
         function drawChartBase() {
@@ -2554,6 +2820,12 @@
                         Plotly.relayout('chart', { title: { text: clickedTitleHTML, x: 0.5, y: 0.95, font: {size: 14} } });
                     }
                 });
+
+                // Ölçüm modu aktifse yeni grafik çizildikten sonra listener'ları yeniden bağla
+                if (isMeasureMode) {
+                    _detachMeasureListeners(chartDiv);
+                    setTimeout(() => { _attachMeasureListeners(chartDiv); }, 50);
+                }
             });
         }
 
@@ -3085,6 +3357,173 @@
             }
         }
 
+        // ===== YEDEK MENÜSÜ =====
+        // Kodda yerleşik (hardcoded) liste isimleri — bunlar yedeklenmez
+        const BUILTIN_LIST_NAMES = new Set([
+            'Tüm Hisseler','BIST100','BIST50','BIST30','BIST Temettü 25',
+            'ISBANK ISTIRAK','TEMETTU 25','BIST TEMETTU','ARACI KURUMLAR','INSAAT',
+            'KOBI SANAYI','BIST ANA','BIST HALKA ARZ','HALKBANK SURD-30',
+            'OSMANLI DEGER-25','TEMETTU 10 YIL','TEMETTU 5 YIL',
+            'Aracı Kurumlar','Bankacılık','Bilgisayar Topt','Boya','Cam',
+            'Yabancı Ortak','Dayanıklı Tüketim','Demir-Çelik Döküm','Demir-Çelik Temel',
+            'Deri Giyim','Elektrik-Gaz Dağ','Elektrik Kurulum','Elektrik Üretim',
+            'Makine-Teçhizat Üretim','Endüstriyel Tekstil','Fin.Kira Faktoring','GYO','Gıda',
+            'Havayolları ve Hizm.','Hayvancılık','Holdingler','Kablo','Kağıt Ürünleri',
+            'Kimyasal Ürün','Kırtasiye','Madencilik','Medya','Meşrubat İçecek','Mobilya',
+            'Otomotiv','Otomotiv Lastiği','Otomotiv Parçası','Pazarlama','Perakande - Ticaret',
+            'Petrol','Savunma','Sağlık ve İlaç','Seramik','Sigorta','Spor',
+            'Tarım Kimya','Teknoloji','Tekstil Entegre','Turizm','Ulaştırma-Loj',
+            'Varlık Yönetim','Yatırım Ortaklıkları','Çimento','İletişim','İletişim Cihaz',
+            'İnşaat Malz','İnşaat-Taahhüt','Küçük Sermaye',"Tüm 500'ler",'GÖZDE',
+            'Zirve-Dip','Elimdekiler'
+        ]);
+
+        function toggleBackupMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('backupMenu');
+            if (menu.classList.contains('open')) { menu.classList.remove('open'); return; }
+            const btn = e.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            menu.style.top  = (rect.bottom + 6) + 'px';
+            menu.style.left = Math.max(4, rect.left - 60) + 'px';
+            menu.classList.add('open');
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('backupMenu');
+            if (menu && menu.classList.contains('open') && !menu.contains(e.target)) {
+                menu.classList.remove('open');
+            }
+        });
+
+        function backupLists() {
+            document.getElementById('backupMenu').classList.remove('open');
+            // Kodda olmayan tüm listeleri topla
+            const backup = {};
+
+            // Yıldızlı & Alınacak
+            ['Yıldızlı', 'Alınacak'].forEach(name => {
+                const arr = symbolLists[name];
+                if (arr && arr.length > 0) backup[name] = arr;
+            });
+
+            // Hızlı listeler
+            QUICK_LISTS.forEach(ql => {
+                const arr = symbolLists[ql.name];
+                if (arr && arr.length > 0) backup[ql.name] = arr;
+            });
+
+            // Kullanıcı tanımlı özel listeler
+            customListKeys.forEach(k => {
+                const arr = symbolLists[k];
+                if (arr && arr.length > 0) backup[k] = arr;
+            });
+
+            if (Object.keys(backup).length === 0) {
+                alert('Yedeklenecek liste bulunamadı. Önce en az bir listeye hisse ekleyin.');
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = now.getFullYear() +
+                String(now.getMonth()+1).padStart(2,'0') +
+                String(now.getDate()).padStart(2,'0');
+            const payload = JSON.stringify(backup, null, 2);
+            const blob = new Blob([payload], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `borsa_listeler_${dateStr}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerRestoreInput() {
+            document.getElementById('backupMenu').classList.remove('open');
+            document.getElementById('restoreFileInput').value = '';
+            document.getElementById('restoreFileInput').click();
+        }
+
+        function restoreLists(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let data;
+                try { data = JSON.parse(e.target.result); }
+                catch(_) { alert('Geçersiz JSON dosyası.'); return; }
+
+                if (typeof data !== 'object' || Array.isArray(data)) {
+                    alert('Dosya formatı hatalı.');
+                    return;
+                }
+
+                const imported = Object.keys(data);
+                if (imported.length === 0) { alert('Dosyada liste bulunamadı.'); return; }
+
+                let added = 0, updated = 0;
+
+                imported.forEach(listName => {
+                    const arr = data[listName];
+                    if (!Array.isArray(arr)) return;
+                    // Sadece geçerli hisse kodlarını filtrele
+                    const clean = arr.filter(s => typeof s === 'string' && allSymbols.includes(s));
+                    if (clean.length === 0) return;
+
+                    const isNew = !symbolLists[listName];
+                    symbolLists[listName] = clean;
+
+                    // Yıldızlı & Alınacak → kendi kayıt fonksiyonları
+                    if (listName === 'Yıldızlı') { saveFavorites(); if (isNew) added++; else updated++; return; }
+                    if (listName === 'Alınacak')  { saveWatchlist(); if (isNew) added++; else updated++; return; }
+
+                    // Hızlı liste mi?
+                    const ql = QUICK_LISTS.find(q => q.name === listName);
+                    if (ql) {
+                        saveQuickList(listName);
+                        // Select text güncelle
+                        const sel = document.getElementById('listSelect');
+                        for (let i = 0; i < sel.options.length; i++) {
+                            if (sel.options[i].value === listName) {
+                                sel.options[i].text = listName + ' (' + clean.length + ')';
+                                break;
+                            }
+                        }
+                        if (isNew) added++; else updated++;
+                        return;
+                    }
+
+                    // Özel liste (customListKeys)
+                    customListKeys.add(listName);
+                    saveCustomLists();
+                    const sel = document.getElementById('listSelect');
+                    // Select'te var mı?
+                    let found = false;
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].value === listName) {
+                            sel.options[i].text = listName + ' (' + clean.length + ')';
+                            found = true; break;
+                        }
+                    }
+                    if (!found) {
+                        const opt = document.createElement('option');
+                        opt.text = listName + ' (' + clean.length + ')';
+                        opt.value = listName;
+                        sel.add(opt);
+                    }
+                    if (isNew) added++; else updated++;
+                });
+
+                updateQuickListUI();
+                updateStarUI();
+                const msg = [];
+                if (added)   msg.push(added   + ' liste eklendi');
+                if (updated) msg.push(updated + ' liste güncellendi');
+                alert(msg.length ? ('✅ ' + msg.join(', ') + '.') : 'Hiçbir liste içe aktarılamadı.');
+            };
+            reader.readAsText(file);
+        }
+
         window.onload = () => {
             document.body.focus();
             // Kayıtlı temayı uygula
@@ -3095,6 +3534,7 @@
             }
             loadCustomLists();
             loadFavorites();
+            loadQuickLists();
             document.getElementById('listSelect').value = "Tüm Hisseler";
             document.getElementById('symbol').value = currentSymbol;
             loadData();
@@ -3112,6 +3552,20 @@
         };
     </script>
 
+
+    <!-- ===== YEDEK MENÜSÜ ===== -->
+    <div id="backupMenu">
+        <div class="backup-menu-title">💾 Liste Yedekleme</div>
+        <div class="backup-menu-item" onclick="backupLists()">
+            <span class="bm-icon">⬇️</span>
+            <span>Yedekle (JSON indir)</span>
+        </div>
+        <div class="backup-menu-item" onclick="triggerRestoreInput()">
+            <span class="bm-icon">⬆️</span>
+            <span>Yedekten Al</span>
+        </div>
+    </div>
+    <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="restoreLists(event)">
 
     <!-- ===== TAKVİM MODALİ ===== -->
     <div id="calModal">
