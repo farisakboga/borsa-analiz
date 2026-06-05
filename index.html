@@ -2470,8 +2470,6 @@
 
                 // tvData henüz gelmemişse arka planda bekle — grafik çiziminden sonra işlenecek
 
-                let cariItems = [...rawData.cari];
-
                 function getCariColor(key, value) {
                     const v = parseFloat(String(value).replace(',', '.').replace(/[^0-9.\-]/g, ''));
                     if (isNaN(v)) return '';
@@ -2486,17 +2484,86 @@
                         return isNeg ? 'val-neg' : 'val-pos';
                     }
                     if (key === 'H.A. Borsa Değeri') return String(value).includes('Mn TL') ? 'val-pos' : '';
-                    if (key === 'Temettü Verimi %') return v > 1 ? 'val-pos' : '';
-                    if (key === 'Beta (1Y)') return v < 1 ? 'val-pos' : 'val-neg';
-                    if (key === 'Faaliyet Kar Marjı %') return v >= 0 ? 'val-pos' : 'val-neg';
-                    if (key === 'Özkaynak Karlılığı %') return v >= 0 ? 'val-pos' : 'val-neg';
+                    if (key === 'Temettü') return v > 1 ? 'val-pos' : '';
+                    if (key === 'Beta') return v < 1 ? 'val-pos' : 'val-neg';
+                    if (key === 'Faaliyet Kar Marjı') return v >= 0 ? 'val-pos' : 'val-neg';
+                    if (key === 'Özkaynak Karlılığı') return v >= 0 ? 'val-pos' : 'val-neg';
                     return '';
                 }
 
-                document.getElementById('cari').innerHTML = cariItems.map(i => {
-                    const colorClass = getCariColor(i.key, i.value);
-                    return `<div class="info-item"><span>${i.key}</span><span class="${colorClass}">${i.value}</span></div>`;
-                }).join('');
+                // Sabit 16 slot: 4 sütun × 4 satır
+                // Sütun 1: F/K, FD/FAVÖK, FD/Satışlar, Piyasa Değeri
+                // Sütun 2: PD/DD, Yabancı, H.A.Borsa Değeri, Temettü
+                // Sütun 3: Halka Açıklık, Cari Oran, Beta, Değişim
+                // Sütun 4: Net Borç, Net Kar, Faaliyet Kar Marjı, Özkaynak Karlılığı
+                // Her slot: { label: görünen ad, match: cariMap'te arama için substring }
+                const CARI_SLOTS = [
+                    { label: 'F/K',               match: 'F/K' },
+                    { label: 'PD/DD',              match: 'PD/DD' },
+                    { label: 'Temettü',            match: 'Temettü' },
+                    { label: 'Net Borç',           match: 'Net Borç' },
+                    { label: 'FD/FAVÖK',           match: 'FD/FAVÖK' },
+                    { label: 'Yabancı',            match: 'Yabancı' },
+                    { label: 'Cari Oran',          match: 'Cari Oran' },
+                    { label: 'Net Kar',            match: 'Net Kar' },
+                    { label: 'FD/Satışlar',        match: 'FD/Satışlar' },
+                    { label: 'H.A. Borsa Değeri',  match: 'H.A. Borsa Değeri' },
+                    { label: 'Beta',               match: 'Beta' },
+                    { label: 'Faaliyet Kar Marjı', match: 'Faaliyet Kar Marjı' },
+                    { label: 'Piyasa Değeri',      match: 'Piyasa Değeri' },
+                    { label: 'Halka Açıklık',      match: 'Halka Açıklık' },
+                    { label: 'Değişim',            match: 'Değişim' },
+                    { label: 'Özkaynak Karlılığı', match: 'Özkaynak Karlılığı' }
+                ];
+
+                // rawData.cari'den anahtar → değer haritası oluştur
+                const cariMap = {};
+                (rawData.cari || []).forEach(i => { cariMap[i.key] = i.value; });
+
+                // substring ile ilk eşleşen değeri döndür
+                function cariLookup(match) {
+                    const key = Object.keys(cariMap).find(k => k.includes(match));
+                    return key ? cariMap[key] : '';
+                }
+
+                function renderCariSlots(tvData) {
+                    const slots = CARI_SLOTS.map(slot => {
+                        let value = cariLookup(slot.match);
+                        // TV verisinden gelen alanlar (rawData üstüne yazar)
+                        if (tvData) {
+                            if (slot.label === 'Net Kar' && tvData['Net Kar'] != null) {
+                                const v = tvData['Net Kar'];
+                                const abs = Math.abs(v);
+                                const sign = v < 0 ? '-' : '';
+                                value = abs >= 1e9 ? sign + (abs/1e9).toFixed(2) + ' Mr'
+                                      : abs >= 1e6 ? sign + (abs/1e6).toFixed(2) + ' Mn'
+                                      : v.toFixed(2);
+                            }
+                            if (slot.label === 'Temettü' && tvData['Temettü Verimi %'] != null)
+                                value = tvData['Temettü Verimi %'].toFixed(2) + '%';
+                            if (slot.label === 'Cari Oran' && tvData['Cari Oran'] != null)
+                                value = tvData['Cari Oran'].toFixed(2);
+                            if (slot.label === 'Beta' && tvData['Beta (1Y)'] != null)
+                                value = tvData['Beta (1Y)'].toFixed(2);
+                            if (slot.label === 'Faaliyet Kar Marjı' && tvData['Faaliyet Kar Marjı %'] != null)
+                                value = tvData['Faaliyet Kar Marjı %'].toFixed(2) + '%';
+                            if (slot.label === 'Özkaynak Karlılığı' && tvData['Özkaynak Karlılığı %'] != null)
+                                value = tvData['Özkaynak Karlılığı %'].toFixed(2) + '%';
+                            if (slot.label === 'Değişim' && tvData['Değişim %'] != null) {
+                                const ch = tvData['Değişim %'];
+                                value = (ch > 0 ? '+' : '') + ch.toFixed(2) + '%';
+                            }
+                        }
+                        return { key: slot.label, value: value };
+                    });
+                    document.getElementById('cari').innerHTML = slots.map(i => {
+                        const colorClass = i.value ? getCariColor(i.key, i.value) : '';
+                        return `<div class="info-item"><span>${i.key}</span><span class="${colorClass}">${i.value}</span></div>`;
+                    }).join('');
+                }
+
+                renderCariSlots(null);
+                window._renderCariSlots = renderCariSlots;
 
                 document.getElementById('descTitle').innerText = (rawData.company_name || currentSymbol) + " | " + currentSymbol;
                 document.getElementById('desc').innerText = rawData.desc;
@@ -2543,7 +2610,8 @@
                 if (keySpan && valSpan && keySpan.textContent.trim() === 'Değişim') {
                     const color = change > 0 ? 'val-pos' : (change < 0 ? 'val-neg' : '');
                     const prefix = change > 0 ? '+' : '';
-                    valSpan.innerHTML = `<span class="${color}">${prefix}%${change.toFixed(2)}</span>`;
+                    valSpan.className = color;
+                    valSpan.textContent = `${prefix}${change.toFixed(2)}%`;
                 }
             });
         }
@@ -2552,56 +2620,12 @@
         function _applyTVDataToUI(tvData) {
             if (!tvData || tvData.error || !rawData) return;
 
-            function fmtTVVal(key, val) {
-                if (val === null || val === undefined) return '--';
-                if (key === 'Net Kar') {
-                    const abs = Math.abs(val);
-                    const sign = val < 0 ? '-' : '';
-                    if (abs >= 1e9) return sign + (abs/1e9).toFixed(2) + ' Mr';
-                    if (abs >= 1e6) return sign + (abs/1e6).toFixed(2) + ' Mn';
-                    return val.toFixed(2);
-                }
-                if (key === 'Temettü Verimi %' || key === 'Faaliyet Kar Marjı %' || key === 'Özkaynak Karlılığı %') return val.toFixed(2) + '%';
-                return typeof val === 'number' ? val.toFixed(2) : val;
-            }
-            function getCariColor(key, value) {
-                const v = parseFloat(String(value).replace(',', '.').replace(/[^0-9.\-]/g, ''));
-                if (isNaN(v)) return '';
-                if (key === 'F/K') return (v >= 0 && v <= 20) ? 'val-pos' : 'val-neg';
-                if (key === 'PD/DD') return v < 2 ? 'val-pos' : 'val-neg';
-                if (key.includes('Yabancı')) return v > 1 ? 'val-pos' : 'val-neg';
-                if (key.includes('Halka Açıklık')) return v < 50 ? 'val-pos' : 'val-neg';
-                if (key === 'Cari Oran') return v > 1 ? 'val-pos' : 'val-neg';
-                if (key.includes('Net Borç')) return v < 0 ? 'val-pos' : 'val-neg';
-                if (key === 'Net Kar') return String(value).trim().startsWith('-') ? 'val-neg' : 'val-pos';
-                if (key === 'H.A. Borsa Değeri') return String(value).includes('Mn TL') ? 'val-pos' : '';
-                if (key === 'Temettü Verimi %') return v > 1 ? 'val-pos' : '';
-                if (key === 'Beta (1Y)') return v < 1 ? 'val-pos' : 'val-neg';
-                if (key === 'Faaliyet Kar Marjı %') return v >= 0 ? 'val-pos' : 'val-neg';
-                if (key === 'Özkaynak Karlılığı %') return v >= 0 ? 'val-pos' : 'val-neg';
-                return '';
-            }
-
             if (tvData['Son Fiyat'] != null) rawData.chart.last_price = tvData['Son Fiyat'];
             if (tvData['Değişim %'] != null) updateChangeFromTV(tvData['Değişim %']);
 
-            let cariItems = [...rawData.cari];
-            const netBorcIdx = cariItems.findIndex(i => i.key.includes('Net Borç') || i.key.includes('Net Borc'));
-            const netKarItem = { key: 'Net Kar', value: fmtTVVal('Net Kar', tvData['Net Kar']) };
-            if (netBorcIdx !== -1) cariItems.splice(netBorcIdx + 1, 0, netKarItem);
-            else cariItems.push(netKarItem);
-            [
-                { key: 'Temettü Verimi %',    val: tvData['Temettü Verimi %'] },
-                { key: 'Cari Oran',            val: tvData['Cari Oran'] },
-                { key: 'Beta (1Y)',            val: tvData['Beta (1Y)'] },
-                { key: 'Faaliyet Kar Marjı %', val: tvData['Faaliyet Kar Marjı %'] },
-                { key: 'Özkaynak Karlılığı %', val: tvData['Özkaynak Karlılığı %'] }
-            ].forEach(item => cariItems.push({ key: item.key, value: fmtTVVal(item.key, item.val), rawVal: item.val }));
-
-            document.getElementById('cari').innerHTML = cariItems.map(i => {
-                const colorClass = getCariColor(i.key, i.value);
-                return `<div class="info-item"><span>${i.key}</span><span class="${colorClass}">${i.value}</span></div>`;
-            }).join('');
+            if (typeof window._renderCariSlots === 'function') {
+                window._renderCariSlots(tvData);
+            }
 
             // Grafik başlığını fiyatla güncelle
             if (activeTimeRange) changeTimeRange(activeTimeRange, false);
